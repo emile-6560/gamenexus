@@ -71,7 +71,7 @@ export async function getGames(): Promise<Game[]> {
 
 export async function getGameDetails(id: number): Promise<Game | null> {
     const query = `
-      fields name, summary, cover.url, platforms.name, total_rating, screenshots.url, involved_games.developer, involved_games.company.name;
+      fields name, summary, cover.url, platforms.name, total_rating, screenshots.url;
       where id = ${id};
     `;
     const games = await fetchFromIGDB('games', query);
