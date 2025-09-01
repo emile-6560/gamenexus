@@ -210,7 +210,6 @@ export async function getFranchises({ page = 1, limit = 20 }): Promise<{ franchi
             games.name, 
             games.cover.url, 
             games.total_rating_count;
-        where games.count > 2;
         limit 500;
     `;
     const allFranchises = await fetchFromIGDB('franchises', allFranchisesQuery);
@@ -224,7 +223,7 @@ export async function getFranchises({ page = 1, limit = 20 }): Promise<{ franchi
             ...f,
             popularity: f.games?.reduce((sum: number, g: any) => sum + (g.total_rating_count || 0), 0) || 0,
         }))
-        .filter((f: any) => f.popularity > 0)
+        .filter((f: any) => f.popularity > 0 && f.games && f.games.length > 2)
         .sort((a: any, b: any) => b.popularity - a.popularity);
 
     const paginatedFranchises = popularFranchises.slice(offset, offset + limit);
