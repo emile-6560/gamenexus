@@ -28,8 +28,8 @@ export function FranchiseCard({ franchise }: FranchiseCardProps) {
           </div>
         </CardHeader>
         <CardContent className="p-4 absolute bottom-0 w-full">
-          <CardTitle className="text-lg leading-tight text-white">{franchise.name}</CardTitle>
-           <Badge variant="secondary" className="mt-2">{franchise.games.length} Jeux</Badge>
+          <CardTitle className="text-lg leading-tight text-white mb-2">{franchise.name}</CardTitle>
+           <Badge variant="secondary">{franchise.games.length} Jeux</Badge>
         </CardContent>
       </Card>
     </Link>
