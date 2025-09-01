@@ -56,12 +56,15 @@ export async function getGames({ search = '', platform }: GetGamesOptions = {}):
   const MAX_GAMES = 25000;
   const PAGE_SIZE = 500; // IGDB API max limit
   let offset = 0;
+  
+  const targetPlatformIds = [6, 48, 49, 130, 167, 169]; // PC, PS4, Xbox One, Switch, PS5, Xbox Series X/S
 
   let whereClauses = [
     'total_rating > 0',
     'total_rating_count > 0',
     'version_parent = null',
-    'parent_game = null'
+    'parent_game = null',
+    `platforms = (${targetPlatformIds.join(',')})`
   ];
 
   if (search) {
@@ -137,7 +140,7 @@ export async function getGameDetails(id: number): Promise<Game | null> {
 
 
 export async function getPlatforms(): Promise<Platform[]> {
-    const popularPlatformIds = [6, 48, 49, 130, 167, 169]; // PC, PS4, PS5, Switch, Xbox One, Xbox Series X/S
+    const popularPlatformIds = [6, 48, 49, 130, 167, 169]; // PC, PS4, Xbox One, Switch, PS5, Xbox Series X/S
     const query = `
         fields name;
         where id = (${popularPlatformIds.join(',')});
