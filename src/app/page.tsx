@@ -131,7 +131,6 @@ export default function Home() {
       <main className="flex-1 container mx-auto px-4 sm:px-6 md:px-8 py-8">
         <div className="mb-8 flex flex-col sm:flex-row gap-4 items-end">
           <div className="relative flex-1 w-full">
-            <Label htmlFor="search-game" className="mb-2 block text-sm font-medium text-muted-foreground">RECHERCHER UN JEU</Label>
             <Search className="absolute left-3 bottom-3 h-5 w-5 text-muted-foreground" />
             <Input
               id="search-game"
