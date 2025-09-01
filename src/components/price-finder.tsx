@@ -41,9 +41,12 @@ export function PriceFinder({ gameName }: { gameName: string }) {
   return (
     <Card className="mt-8 bg-card/50">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Tag className="text-primary" />
-          <span>Vérificateur de prix</span>
+        <CardTitle className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Tag className="text-primary" />
+            <span>Vérificateur de prix</span>
+          </div>
+          <span className="text-xs font-normal text-muted-foreground">propulsé par Gemini</span>
         </CardTitle>
       </CardHeader>
       <CardContent>
