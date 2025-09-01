@@ -214,7 +214,7 @@ export async function getPlatforms(): Promise<Platform[]> {
 export async function getFranchises(): Promise<Franchise[]> {
   const query = `
     fields name, games.name, games.cover.url;
-    where games > 5;
+    where games.count > 5;
     limit 50;
   `;
   const franchises = await fetchFromIGDB('franchises', query);
