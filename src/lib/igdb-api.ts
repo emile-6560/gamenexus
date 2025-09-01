@@ -53,7 +53,7 @@ type GetGamesOptions = {
 
 export async function getGames({ search = '', platform }: GetGamesOptions = {}): Promise<Game[]> {
   const allGames: Game[] = [];
-  const MAX_GAMES = 25000;
+  const MAX_GAMES = 10000;
   const PAGE_SIZE = 500; // IGDB API max limit
   let offset = 0;
   
