@@ -6,7 +6,7 @@ import { Gamepad, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { GameCard, GameCardSkeleton } from '@/components/game-card';
-import { getGames, getPlatforms } from '@/lib/igdb-mock-api';
+import { getGames, getPlatforms } from '@/lib/igdb-api';
 import type { Game, Platform } from '@/lib/types';
 
 export default function Home() {
@@ -31,9 +31,10 @@ export default function Home() {
   }, []);
 
   const filteredGames = useMemo(() => {
+    if (!games) return [];
     return games.filter(game => {
       const matchesSearch = game.name.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesPlatform = selectedPlatform === 'all' || game.platforms.some(p => p.name === selectedPlatform);
+      const matchesPlatform = selectedPlatform === 'all' || game.platforms?.some(p => p.name === selectedPlatform);
       return matchesSearch && matchesPlatform;
     });
   }, [games, searchQuery, selectedPlatform]);
@@ -77,7 +78,7 @@ export default function Home() {
 
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-            {Array.from({ length: 10 }).map((_, i) => (
+            {Array.from({ length: 20 }).map((_, i) => (
               <GameCardSkeleton key={i} />
             ))}
           </div>

@@ -21,6 +21,7 @@ export function GameCard({ game }: GameCardProps) {
               alt={game.name}
               fill
               className="object-cover transition-transform duration-300 group-hover:scale-105"
+              sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 20vw"
               data-ai-hint="game cover"
             />
           </div>
@@ -30,11 +31,11 @@ export function GameCard({ game }: GameCardProps) {
         </CardContent>
         <CardFooter className="p-4 pt-0 flex justify-between items-center">
           <div className="flex items-center gap-2 text-muted-foreground">
-            {game.platforms.slice(0, 3).map(p => (
-              <PlatformIcon key={p.id} platform={p.name} className="h-4 w-4" />
+            {game.platforms?.slice(0, 3).map(p => (
+              <PlatformIcon key={p.id} platform={p.name as any} className="h-4 w-4" />
             ))}
           </div>
-          <Badge variant="secondary">{game.rating}</Badge>
+          <Badge variant="secondary">{game.rating.toFixed(0)}</Badge>
         </CardFooter>
       </Card>
     </Link>

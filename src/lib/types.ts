@@ -1,9 +1,19 @@
-export type PlatformName = 'PC' | 'PlayStation' | 'Xbox' | 'Nintendo Switch' | 'macOS';
+export type PlatformName = 
+  | 'PC'
+  | 'PlayStation'
+  | 'Xbox'
+  | 'Nintendo Switch'
+  | 'macOS';
 
 export type Platform = {
   id: number;
-  name: PlatformName;
+  name: string;
 };
+
+export type GameImage = {
+  id: number;
+  url: string;
+}
 
 export type Game = {
   id: number;
@@ -12,7 +22,7 @@ export type Game = {
   coverUrl: string;
   platforms: Platform[];
   rating: number;
-  screenshots: string[];
+  screenshots: GameImage[];
 };
 
 export type Price = {

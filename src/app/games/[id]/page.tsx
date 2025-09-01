@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getGameDetails } from '@/lib/igdb-mock-api';
+import { getGameDetails } from '@/lib/igdb-api';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { PlatformIcon } from '@/components/icons';
@@ -24,7 +24,7 @@ export default async function GameDetailPage({ params }: GameDetailPageProps) {
     <div className="animate-in fade-in-50 duration-500">
       <div className="relative h-[40vh] md:h-[50vh] w-full">
         <Image
-          src={game.screenshots[0]}
+          src={game.screenshots[0].url}
           alt={`Screenshot of ${game.name}`}
           fill
           className="object-cover"
@@ -62,13 +62,13 @@ export default async function GameDetailPage({ params }: GameDetailPageProps) {
             <div className="flex flex-wrap items-center gap-4 mb-6">
               <div className="flex items-center gap-2">
                 <Star className="w-5 h-5 text-amber-400 fill-amber-400" />
-                <span className="font-bold text-lg">{game.rating}</span>
+                <span className="font-bold text-lg">{game.rating.toFixed(0)}</span>
                 <span className="text-muted-foreground text-sm">/ 100 (Metascore)</span>
               </div>
               <div className="flex items-center gap-x-3">
                 {game.platforms.map(platform => (
                   <div key={platform.id} className="flex items-center gap-2 text-muted-foreground" title={platform.name}>
-                    <PlatformIcon platform={platform.name} className="h-5 w-5" />
+                    <PlatformIcon platform={platform.name as any} className="h-5 w-5" />
                   </div>
                 ))}
               </div>
@@ -81,9 +81,9 @@ export default async function GameDetailPage({ params }: GameDetailPageProps) {
             <div className="mb-8">
                 <h2 className="text-2xl font-bold mb-4">Screenshots</h2>
                 <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-                    {game.screenshots.map((ss, index) => (
-                        <div key={index} className="aspect-video relative rounded-md overflow-hidden">
-                            <Image src={ss} alt={`Screenshot ${index + 1}`} fill className="object-cover"/>
+                    {game.screenshots.map((ss) => (
+                        <div key={ss.id} className="aspect-video relative rounded-md overflow-hidden">
+                            <Image src={ss.url} alt={`Screenshot`} fill className="object-cover"/>
                         </div>
                     ))}
                 </div>
