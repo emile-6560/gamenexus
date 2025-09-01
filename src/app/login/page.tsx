@@ -18,6 +18,8 @@ import { Loader2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
+const googleProvider = new GoogleAuthProvider();
+
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -29,8 +31,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       if (action === 'google') {
-        const provider = new GoogleAuthProvider();
-        await signInWithPopup(auth, provider);
+        await signInWithPopup(auth, googleProvider);
       } else if (action === 'signUp') {
         await createUserWithEmailAndPassword(auth, email, password);
       } else {
