@@ -15,8 +15,10 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPlatform, setSelectedPlatform] = useState('all');
   const [isLoading, setIsLoading] = useState(true);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    setIsClient(true);
     const fetchInitialData = async () => {
       setIsLoading(true);
       const [gamesData, platformsData] = await Promise.all([
@@ -51,29 +53,38 @@ export default function Home() {
       </header>
       <main className="flex-1 container mx-auto px-4 sm:px-6 md:px-8 py-8">
         <div className="mb-8 flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search for a game..."
-              className="pl-10 h-12 text-lg"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          <Select value={selectedPlatform} onValueChange={setSelectedPlatform}>
-            <SelectTrigger className="w-full sm:w-[200px] h-12 text-lg">
-              <SelectValue placeholder="Filter by platform" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Platforms</SelectItem>
-              {platforms.map(platform => (
-                <SelectItem key={platform.id} value={platform.name}>
-                  {platform.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {isClient ? (
+            <>
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Search for a game..."
+                  className="pl-10 h-12 text-lg"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <Select value={selectedPlatform} onValueChange={setSelectedPlatform}>
+                <SelectTrigger className="w-full sm:w-[200px] h-12 text-lg">
+                  <SelectValue placeholder="Filter by platform" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Platforms</SelectItem>
+                  {platforms.map(platform => (
+                    <SelectItem key={platform.id} value={platform.name}>
+                      {platform.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </>
+          ) : (
+            <>
+              <div className="relative flex-1 h-12 bg-muted rounded-md" />
+              <div className="w-full sm:w-[200px] h-12 bg-muted rounded-md" />
+            </>
+          )}
         </div>
 
         {isLoading ? (
