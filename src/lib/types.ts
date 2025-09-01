@@ -15,6 +15,11 @@ export type GameImage = {
   url: string;
 }
 
+type IdName = {
+  id: number;
+  name: string;
+}
+
 export type Game = {
   id: number;
   name: string;
@@ -23,6 +28,12 @@ export type Game = {
   platforms: Platform[];
   rating: number;
   screenshots: GameImage[];
+  releaseDate: number;
+  genres: IdName[];
+  franchises: IdName[];
+  gameModes: IdName[];
+  developers: IdName[];
+  publishers: IdName[];
 };
 
 export type Price = {

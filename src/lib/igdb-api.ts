@@ -103,6 +103,12 @@ export async function getGames({ search = '', platform, page = 1, limit = 100, s
       rating: game.total_rating || 0,
       description: '', // Not fetched in list view
       screenshots: [], // Not fetched in list view
+      releaseDate: game.first_release_date,
+      genres: [],
+      franchises: [],
+      gameModes: [],
+      developers: [],
+      publishers: [],
   }));
 
   return { games: formattedGames, totalCount: Math.min(totalCount, 10000) };
@@ -111,7 +117,20 @@ export async function getGames({ search = '', platform, page = 1, limit = 100, s
 
 export async function getGameDetails(id: number): Promise<Game | null> {
     const query = `
-      fields name, summary, cover.url, platforms.name, total_rating, screenshots.url, first_release_date;
+      fields 
+        name, 
+        summary, 
+        cover.url, 
+        platforms.name, 
+        total_rating, 
+        screenshots.url, 
+        first_release_date,
+        genres.name,
+        franchises.name,
+        game_modes.name,
+        involved_companies.company.name,
+        involved_companies.developer,
+        involved_companies.publisher;
       where id = ${id};
     `;
     const games = await fetchFromIGDB('games', query);
@@ -119,6 +138,14 @@ export async function getGameDetails(id: number): Promise<Game | null> {
     if (!games || games.length === 0) return null;
 
     const game = games[0];
+
+    const developers = (game.involved_companies || [])
+        .filter((c: any) => c.developer)
+        .map((c: any) => c.company);
+
+    const publishers = (game.involved_companies || [])
+        .filter((c: any) => c.publisher)
+        .map((c: any) => c.company);
 
     return {
         id: game.id,
@@ -131,6 +158,12 @@ export async function getGameDetails(id: number): Promise<Game | null> {
             id: ss.id,
             url: formatScreenshotUrl(ss.url)
         })),
+        releaseDate: game.first_release_date,
+        genres: game.genres || [],
+        franchises: game.franchises || [],
+        gameModes: game.game_modes || [],
+        developers: developers,
+        publishers: publishers,
     };
 }
 

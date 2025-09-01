@@ -46,7 +46,7 @@ export function PriceFinder({ gameName }: { gameName: string }) {
             <Tag className="text-primary" />
             <span>Vérificateur de prix</span>
           </div>
-          <span className="text-xs font-normal text-muted-foreground">propulsé par Gemini</span>
+          <span className="text-xs font-normal text-muted-foreground">Propulsé par Gemini 2.5 Flash</span>
         </CardTitle>
       </CardHeader>
       <CardContent>
