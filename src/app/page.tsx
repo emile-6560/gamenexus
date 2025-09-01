@@ -11,7 +11,7 @@ import { getGames, getPlatforms } from '@/lib/igdb-api';
 import type { Game, Platform } from '@/lib/types';
 import { useDebounce } from '@/hooks/use-debounce';
 
-const GAMES_PER_PAGE = 50;
+const GAMES_PER_PAGE = 20;
 
 export default function Home() {
   const [games, setGames] = useState<Game[]>([]);
@@ -139,7 +139,7 @@ export default function Home() {
         
         {isLoading && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mt-6">
-             {Array.from({ length: GAMES_PER_PAGE / 2 }).map((_, i) => (
+             {Array.from({ length: 10 }).map((_, i) => (
               <GameCardSkeleton key={i} />
             ))}
           </div>
