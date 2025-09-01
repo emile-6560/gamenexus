@@ -12,7 +12,7 @@ interface FranchiseCardProps {
 
 export function FranchiseCard({ franchise }: FranchiseCardProps) {
   return (
-    <Link href="#" className="group block">
+    <Link href={`/franchises/${franchise.id}`} className="group block">
       <Card className="h-full overflow-hidden transition-all duration-300 group-hover:shadow-xl group-hover:shadow-primary/20 group-hover:-translate-y-1 flex flex-col">
         <div className="aspect-[4/3] relative">
           <Image

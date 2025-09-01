@@ -48,6 +48,37 @@ function formatScreenshotUrl(url?: string) {
     return url ? `https:${url.replace('t_thumb', 't_screenshot_huge')}` : '/placeholder.jpg';
 }
 
+function mapGame(game: any): Game {
+    const developers = (game.involved_companies || [])
+        .filter((c: any) => c.developer)
+        .map((c: any) => c.company).filter(Boolean);
+
+    const publishers = (game.involved_companies || [])
+        .filter((c: any) => c.publisher)
+        .map((c: any) => c.company).filter(Boolean);
+
+    return {
+        id: game.id,
+        name: game.name,
+        description: game.summary,
+        coverUrl: formatCoverUrl(game.cover?.url),
+        platforms: game.platforms || [],
+        rating: game.total_rating || 0,
+        screenshots: (game.screenshots || []).map((ss: any) => ({
+            id: ss.id,
+            url: formatScreenshotUrl(ss.url)
+        })),
+        releaseDate: game.first_release_date,
+        genres: game.genres || [],
+        themes: game.themes || [],
+        franchises: game.franchises || [],
+        gameModes: game.game_modes || [],
+        videos: game.videos || [],
+        developers: developers,
+        publishers: publishers,
+    };
+}
+
 type GetGamesOptions = {
     search?: string;
     platform?: string;
@@ -96,23 +127,7 @@ export async function getGames({ search = '', platform, page = 1, limit = 100, s
     
   const games = await fetchFromIGDB('games', gamesQuery);
 
-  const formattedGames = games.map((game: any) => ({
-      id: game.id,
-      name: game.name,
-      coverUrl: formatCoverUrl(game.cover?.url),
-      platforms: game.platforms || [],
-      rating: game.total_rating || 0,
-      description: '', // Not fetched in list view
-      screenshots: [], // Not fetched in list view
-      releaseDate: game.first_release_date,
-      genres: [],
-      franchises: [],
-      gameModes: [],
-      themes: [],
-      videos: [],
-      developers: [],
-      publishers: [],
-  }));
+  const formattedGames = games.map(mapGame);
 
   return { games: formattedGames, totalCount: Math.min(totalCount, 10000) };
 }
@@ -142,36 +157,7 @@ export async function getGameDetails(id: number): Promise<Game | null> {
 
     if (!games || games.length === 0) return null;
 
-    const game = games[0];
-
-    const developers = (game.involved_companies || [])
-        .filter((c: any) => c.developer)
-        .map((c: any) => c.company);
-
-    const publishers = (game.involved_companies || [])
-        .filter((c: any) => c.publisher)
-        .map((c: any) => c.company);
-
-    return {
-        id: game.id,
-        name: game.name,
-        description: game.summary,
-        coverUrl: formatCoverUrl(game.cover?.url),
-        platforms: game.platforms || [],
-        rating: game.total_rating || 0,
-        screenshots: (game.screenshots || []).map((ss: any) => ({
-            id: ss.id,
-            url: formatScreenshotUrl(ss.url)
-        })),
-        releaseDate: game.first_release_date,
-        genres: game.genres || [],
-        themes: game.themes || [],
-        franchises: game.franchises || [],
-        gameModes: game.game_modes || [],
-        videos: game.videos || [],
-        developers: developers,
-        publishers: publishers,
-    };
+    return mapGame(games[0]);
 }
 
 
@@ -219,19 +205,17 @@ export async function getFranchises(): Promise<Franchise[]> {
       games.cover.url, 
       games.total_rating_count;
     where 
-      games.total_rating_count > 1000;
+      games.total_rating_count > 1000 & games.count > 2;
     limit 100;
-    sort games.total_rating_count desc;
   `;
   const allFranchises = await fetchFromIGDB('franchises', query);
   
   if (!allFranchises) return [];
 
   const popularFranchises = allFranchises
-    .filter((f: any) => f.games && f.games.length > 2)
     .sort((a: any, b: any) => {
-        const ratingA = a.games[0]?.total_rating_count || 0;
-        const ratingB = b.games[0]?.total_rating_count || 0;
+        const ratingA = a.games.reduce((sum: number, g: any) => sum + (g.total_rating_count || 0), 0);
+        const ratingB = b.games.reduce((sum: number, g: any) => sum + (g.total_rating_count || 0), 0);
         return ratingB - ratingA;
     });
 
@@ -241,4 +225,35 @@ export async function getFranchises(): Promise<Franchise[]> {
     coverUrl: franchise.games && franchise.games.length > 0 && franchise.games[0].cover ? formatCoverUrl(franchise.games[0].cover.url) : '/placeholder.jpg',
     games: franchise.games || [],
   }));
+}
+
+export async function getFranchiseDetails(id: number): Promise<Franchise | null> {
+    const query = `
+        fields 
+            name, 
+            games.name,
+            games.cover.url,
+            games.platforms.name,
+            games.total_rating,
+            games.first_release_date;
+        where id = ${id};
+    `;
+    const franchises = await fetchFromIGDB('franchises', query);
+
+    if (!franchises || franchises.length === 0) {
+        return null;
+    }
+
+    const franchise = franchises[0];
+    
+    // Sort games by release date, newest first
+    const sortedGames = (franchise.games || []).sort((a: any, b: any) => (b.first_release_date || 0) - (a.first_release_date || 0));
+
+    return {
+        id: franchise.id,
+        name: franchise.name,
+        // The cover of the most recent game in the franchise
+        coverUrl: sortedGames.length > 0 ? formatCoverUrl(sortedGames[0].cover?.url) : '/placeholder.jpg',
+        games: sortedGames.map(mapGame),
+    };
 }
