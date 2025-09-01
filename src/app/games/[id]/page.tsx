@@ -25,7 +25,7 @@ export default async function GameDetailPage({ params }: GameDetailPageProps) {
       <div className="relative h-[40vh] md:h-[50vh] w-full">
         <Image
           src={game.screenshots[0].url}
-          alt={`Screenshot of ${game.name}`}
+          alt={`Capture d'écran de ${game.name}`}
           fill
           className="object-cover"
           priority
@@ -36,7 +36,7 @@ export default async function GameDetailPage({ params }: GameDetailPageProps) {
           <Button asChild variant="secondary" size="sm">
             <Link href="/">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Games
+              Retour aux jeux
             </Link>
           </Button>
         </div>
@@ -79,11 +79,11 @@ export default async function GameDetailPage({ params }: GameDetailPageProps) {
             </p>
 
             <div className="mb-8">
-                <h2 className="text-2xl font-bold mb-4">Screenshots</h2>
+                <h2 className="text-2xl font-bold mb-4">Captures d'écran</h2>
                 <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
                     {game.screenshots.map((ss) => (
                         <div key={ss.id} className="aspect-video relative rounded-md overflow-hidden">
-                            <Image src={ss.url} alt={`Screenshot`} fill className="object-cover"/>
+                            <Image src={ss.url} alt={`Capture d'écran`} fill className="object-cover"/>
                         </div>
                     ))}
                 </div>

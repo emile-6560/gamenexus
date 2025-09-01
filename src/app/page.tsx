@@ -66,7 +66,7 @@ export default function Home() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   type="search"
-                  placeholder="Search for a game..."
+                  placeholder="Rechercher un jeu..."
                   className="pl-10 h-12 text-lg"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -74,10 +74,10 @@ export default function Home() {
               </div>
               <Select value={selectedPlatform} onValueChange={(value) => setSelectedPlatform(value)}>
                 <SelectTrigger className="w-full sm:w-[200px] h-12 text-lg">
-                  <SelectValue placeholder="Filter by platform" />
+                  <SelectValue placeholder="Filtrer par plateforme" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Platforms</SelectItem>
+                  <SelectItem value="all">Toutes plateformes</SelectItem>
                   {platforms.map(platform => (
                     <SelectItem key={platform.id} value={platform.name}>
                       {platform.name}
@@ -112,8 +112,8 @@ export default function Home() {
 
         {!isLoading && games.length === 0 && (
           <div className="text-center py-20">
-            <h2 className="text-2xl font-semibold mb-2">No Games Found</h2>
-            <p className="text-muted-foreground">Try adjusting your search or filter.</p>
+            <h2 className="text-2xl font-semibold mb-2">Aucun jeu trouvé</h2>
+            <p className="text-muted-foreground">Essayez d'ajuster votre recherche ou votre filtre.</p>
           </div>
         )}
       </main>

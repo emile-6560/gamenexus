@@ -22,15 +22,15 @@ export function PriceFinder({ gameName }: { gameName: string }) {
       setPrices(result.prices);
       if (result.prices.length === 0) {
         toast({
-          title: 'No prices found',
-          description: `Our AI couldn't find any current prices for ${gameName}.`,
+          title: 'Aucun prix trouvé',
+          description: `Notre IA n'a trouvé aucun prix actuel pour ${gameName}.`,
         });
       }
     } catch (error) {
       toast({
         variant: 'destructive',
-        title: 'An error occurred',
-        description: 'Could not fetch prices. Please try again later.',
+        title: 'Une erreur est survenue',
+        description: 'Impossible de récupérer les prix. Veuillez réessayer plus tard.',
       });
       setPrices([]); // To hide the loading state and show the 'not found' message if needed
     } finally {
@@ -43,28 +43,28 @@ export function PriceFinder({ gameName }: { gameName: string }) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Tag className="text-primary" />
-          <span>Price Check</span>
+          <span>Vérificateur de prix</span>
         </CardTitle>
       </CardHeader>
       <CardContent>
         <p className="text-muted-foreground mb-4">
-          Click the button below to use our AI to search for the best prices for this game across major retailers.
+          Cliquez sur le bouton ci-dessous pour utiliser notre IA pour rechercher les meilleurs prix pour ce jeu auprès des principaux détaillants.
         </p>
         <Button onClick={handleFindPrices} disabled={isLoading} size="lg" className="w-full sm:w-auto">
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Searching...
+              Recherche en cours...
             </>
           ) : (
-            'Find Best Prices'
+            'Trouver les meilleurs prix'
           )}
         </Button>
 
         {isLoading && (
           <div className="mt-6 text-center">
             <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
-            <p className="mt-2 text-muted-foreground">Our AI is on the hunt...</p>
+            <p className="mt-2 text-muted-foreground">Notre IA est à la recherche...</p>
           </div>
         )}
 
@@ -73,9 +73,9 @@ export function PriceFinder({ gameName }: { gameName: string }) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Retailer</TableHead>
-                  <TableHead className="text-right">Price</TableHead>
-                  <TableHead className="text-right">Link</TableHead>
+                  <TableHead>Détaillant</TableHead>
+                  <TableHead className="text-right">Prix</TableHead>
+                  <TableHead className="text-right">Lien</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -99,8 +99,8 @@ export function PriceFinder({ gameName }: { gameName: string }) {
 
         {prices && prices.length === 0 && (
           <div className="mt-6 text-center py-8 bg-muted/50 rounded-lg">
-            <p className="font-semibold">No prices found</p>
-            <p className="text-sm text-muted-foreground">Try again later or check your favorite stores directly.</p>
+            <p className="font-semibold">Aucun prix trouvé</p>
+            <p className="text-sm text-muted-foreground">Réessayez plus tard ou consultez directement vos magasins préférés.</p>
           </div>
         )}
       </CardContent>
