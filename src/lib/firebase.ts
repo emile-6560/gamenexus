@@ -7,12 +7,12 @@ import { getFirestore } from "firebase/firestore";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  projectId: "gamefinder-98gjx",
-  appId: "1:828350349866:web:26836bdac675ca87a8b953",
-  storageBucket: "gamefinder-98gjx.firebasestorage.app",
-  apiKey: "AIzaSyDNcz3asWkTPwguLkQ7mG_VVZUBuQQwzTM",
-  authDomain: "gamefinder-98gjx.firebaseapp.com",
-  messagingSenderId: "828350349866",
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
 // Initialize Firebase
