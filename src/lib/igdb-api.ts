@@ -253,7 +253,7 @@ export async function getFranchiseDetails(id: number): Promise<Franchise | null>
         id: franchise.id,
         name: franchise.name,
         // The cover of the most recent game in the franchise
-        coverUrl: sortedGames.length > 0 ? formatCoverUrl(sortedGames[0].cover?.url) : '/placeholder.jpg',
+        coverUrl: sortedGames.length > 0 && sortedGames[0].cover ? formatCoverUrl(sortedGames[0].cover.url) : '/placeholder.jpg',
         games: sortedGames.map(mapGame),
     };
 }
