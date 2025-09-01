@@ -214,14 +214,15 @@ export async function getPlatforms(): Promise<Platform[]> {
 export async function getFranchises(): Promise<Franchise[]> {
   const query = `
     fields name, games.name, games.cover.url;
-    where games.count > 5;
-    limit 50;
+    limit 150;
   `;
-  const franchises = await fetchFromIGDB('franchises', query);
+  const allFranchises = await fetchFromIGDB('franchises', query);
   
-  if (!franchises) return [];
+  if (!allFranchises) return [];
 
-  return franchises.map((franchise: any) => ({
+  const popularFranchises = allFranchises.filter((f: any) => f.games && f.games.length > 5);
+
+  return popularFranchises.slice(0, 50).map((franchise: any) => ({
     id: franchise.id,
     name: franchise.name,
     coverUrl: franchise.games && franchise.games.length > 0 && franchise.games[0].cover ? formatCoverUrl(franchise.games[0].cover.url) : '/placeholder.jpg',
