@@ -1,7 +1,7 @@
 
 'use server';
 
-import type { Game, Platform, GameImage } from './types';
+import type { Game, Platform } from './types';
 
 const IGDB_API_URL = 'https://api.igdb.com/v4';
 const CLIENT_ID = process.env.IGDB_CLIENT_ID;
@@ -10,6 +10,7 @@ const ACCESS_TOKEN = process.env.IGDB_ACCESS_TOKEN;
 async function fetchFromIGDB(endpoint: string, query: string) {
   if (!CLIENT_ID || !ACCESS_TOKEN || CLIENT_ID === 'your_client_id_here') {
     console.error('IGDB API credentials are not configured.');
+    if (endpoint.endsWith('/count')) return { count: 0 };
     if (endpoint === 'games') return [];
     if (endpoint === 'platforms') return [];
     return null;
@@ -49,13 +50,11 @@ function formatScreenshotUrl(url?: string) {
 type GetGamesOptions = {
     search?: string;
     platform?: string;
+    page?: number;
+    limit?: number;
 }
 
-export async function getGames({ search = '', platform }: GetGamesOptions = {}): Promise<Game[]> {
-  const allGames: Game[] = [];
-  const MAX_GAMES = 10000;
-  const PAGE_SIZE = 500; // IGDB API max limit
-  let offset = 0;
+export async function getGames({ search = '', platform, page = 1, limit = 100 }: GetGamesOptions = {}): Promise<{ games: Game[], totalCount: number }> {
   
   const targetPlatformIds = [6, 48, 49, 130, 167, 169]; // PC, PS4, Xbox One, Switch, PS5, Xbox Series X/S
 
@@ -76,23 +75,25 @@ export async function getGames({ search = '', platform }: GetGamesOptions = {}):
   }
 
   const whereString = whereClauses.join(' & ');
+  const offset = (page - 1) * limit;
 
-  while (allGames.length < MAX_GAMES) {
-    const query = `
+  // Fetch total count
+  const countQuery = `where ${whereString};`;
+  const countResult = await fetchFromIGDB('games/count', countQuery);
+  const totalCount = countResult?.count || 0;
+
+  // Fetch games for the current page
+  const gamesQuery = `
       fields name, cover.url, platforms.name, total_rating;
       where ${whereString};
       sort total_rating_count desc;
-      limit ${PAGE_SIZE};
+      limit ${limit};
       offset ${offset};
-    `;
+  `;
     
-    const games = await fetchFromIGDB('games', query);
+  const games = await fetchFromIGDB('games', gamesQuery);
 
-    if (!games || games.length === 0) {
-      break; // No more games to fetch
-    }
-
-    allGames.push(...games.map((game: any) => ({
+  const formattedGames = games.map((game: any) => ({
       id: game.id,
       name: game.name,
       coverUrl: formatCoverUrl(game.cover?.url),
@@ -100,16 +101,9 @@ export async function getGames({ search = '', platform }: GetGamesOptions = {}):
       rating: game.total_rating || 0,
       description: '', // Not fetched in list view
       screenshots: [], // Not fetched in list view
-    })));
+  }));
 
-    offset += PAGE_SIZE;
-
-    if (games.length < PAGE_SIZE) {
-      break; // Last page
-    }
-  }
-
-  return allGames.slice(0, MAX_GAMES);
+  return { games: formattedGames, totalCount: Math.min(totalCount, 10000) };
 }
 
 

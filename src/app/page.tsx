@@ -10,6 +10,7 @@ import { GameCard, GameCardSkeleton } from '@/components/game-card';
 import { getGames, getPlatforms } from '@/lib/igdb-api';
 import type { Game, Platform } from '@/lib/types';
 import { useDebounce } from '@/hooks/use-debounce';
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 
 export default function Home() {
   const [games, setGames] = useState<Game[]>([]);
@@ -17,7 +18,10 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPlatform, setSelectedPlatform] = useState('all');
   const [isLoading, setIsLoading] = useState(true);
-  const [isClient, setIsClient] = useState(false);
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const [gamesPerPage, setGamesPerPage] = useState(100);
+  const [totalGames, setTotalGames] = useState(0);
 
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [isPending, startTransition] = useTransition();
@@ -25,17 +29,19 @@ export default function Home() {
   const loadGames = useCallback(() => {
     setIsLoading(true);
     startTransition(async () => {
-        const newGames = await getGames({
+        const { games: newGames, totalCount } = await getGames({
             search: debouncedSearchQuery,
             platform: selectedPlatform === 'all' ? undefined : selectedPlatform,
+            page: currentPage,
+            limit: gamesPerPage,
         });
         setGames(newGames);
+        setTotalGames(totalCount);
         setIsLoading(false);
     });
-  }, [debouncedSearchQuery, selectedPlatform]);
+  }, [debouncedSearchQuery, selectedPlatform, currentPage, gamesPerPage]);
 
   useEffect(() => {
-    setIsClient(true);
     const fetchPlatforms = async () => {
       const platformsData = await getPlatforms();
       setPlatforms(platformsData);
@@ -47,6 +53,67 @@ export default function Home() {
     loadGames();
   }, [loadGames]);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearchQuery, selectedPlatform, gamesPerPage]);
+
+  const totalPages = Math.ceil(totalGames / gamesPerPage);
+
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  const renderPagination = () => {
+    const pageNumbers = [];
+    const maxPagesToShow = 5;
+    const halfMaxPages = Math.floor(maxPagesToShow / 2);
+
+    let startPage = Math.max(1, currentPage - halfMaxPages);
+    let endPage = Math.min(totalPages, currentPage + halfMaxPages);
+
+    if (currentPage - halfMaxPages < 1) {
+        endPage = Math.min(totalPages, endPage + (halfMaxPages - (currentPage - 1)));
+    }
+    if (currentPage + halfMaxPages > totalPages) {
+        startPage = Math.max(1, startPage - (currentPage + halfMaxPages - totalPages));
+    }
+
+    if (startPage > 1) {
+        pageNumbers.push(
+            <PaginationItem key="1">
+                <PaginationLink href="#" onClick={(e) => { e.preventDefault(); handlePageChange(1); }}>1</PaginationLink>
+            </PaginationItem>
+        );
+        if (startPage > 2) {
+            pageNumbers.push(<PaginationItem key="start-ellipsis"><PaginationEllipsis /></PaginationItem>);
+        }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+        pageNumbers.push(
+            <PaginationItem key={i}>
+                <PaginationLink href="#" onClick={(e) => { e.preventDefault(); handlePageChange(i); }} isActive={i === currentPage}>
+                    {i}
+                </PaginationLink>
+            </PaginationItem>
+        );
+    }
+
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            pageNumbers.push(<PaginationItem key="end-ellipsis"><PaginationEllipsis /></PaginationItem>);
+        }
+        pageNumbers.push(
+            <PaginationItem key={totalPages}>
+                <PaginationLink href="#" onClick={(e) => { e.preventDefault(); handlePageChange(totalPages); }}>{totalPages}</PaginationLink>
+            </PaginationItem>
+        );
+    }
+
+    return pageNumbers;
+  };
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -60,43 +127,34 @@ export default function Home() {
       </header>
       <main className="flex-1 container mx-auto px-4 sm:px-6 md:px-8 py-8">
         <div className="mb-8 flex flex-col sm:flex-row gap-4">
-          {isClient ? (
-            <>
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Rechercher un jeu..."
-                  className="pl-10 h-12 text-lg"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-              <Select value={selectedPlatform} onValueChange={(value) => setSelectedPlatform(value)}>
-                <SelectTrigger className="w-full sm:w-[200px] h-12 text-lg">
-                  <SelectValue placeholder="Filtrer par plateforme" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Toutes plateformes</SelectItem>
-                  {platforms.map(platform => (
-                    <SelectItem key={platform.id} value={platform.name}>
-                      {platform.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </>
-          ) : (
-            <>
-              <div className="relative flex-1 h-12 bg-muted rounded-md" />
-              <div className="w-full sm:w-[200px] h-12 bg-muted rounded-md" />
-            </>
-          )}
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Rechercher un jeu..."
+              className="pl-10 h-12 text-lg"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <Select value={selectedPlatform} onValueChange={(value) => setSelectedPlatform(value)}>
+            <SelectTrigger className="w-full sm:w-[200px] h-12 text-lg">
+              <SelectValue placeholder="Filtrer par plateforme" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Toutes plateformes</SelectItem>
+              {platforms.map(platform => (
+                <SelectItem key={platform.id} value={platform.name}>
+                  {platform.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         
         {isLoading && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mt-6">
-             {Array.from({ length: 20 }).map((_, i) => (
+             {Array.from({ length: gamesPerPage }).map((_, i) => (
               <GameCardSkeleton key={i} />
             ))}
           </div>
@@ -117,6 +175,40 @@ export default function Home() {
           </div>
         )}
       </main>
+
+      {!isLoading && totalPages > 1 && (
+        <footer className="py-6 px-4 sm:px-6 md:px-8 border-t">
+          <div className="container mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span>Jeux par page:</span>
+              <Select value={String(gamesPerPage)} onValueChange={(value) => setGamesPerPage(Number(value))}>
+                <SelectTrigger className="w-[80px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="20">20</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                  <SelectItem value="100">100</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious href="#" onClick={(e) => { e.preventDefault(); handlePageChange(currentPage - 1); }} />
+                </PaginationItem>
+                {renderPagination()}
+                <PaginationItem>
+                  <PaginationNext href="#" onClick={(e) => { e.preventDefault(); handlePageChange(currentPage + 1); }} />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+            <div className="text-sm text-muted-foreground">
+              Page {currentPage} sur {totalPages} ({totalGames} jeux)
+            </div>
+          </div>
+        </footer>
+      )}
     </div>
   );
 }
