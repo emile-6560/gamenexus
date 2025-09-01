@@ -10,7 +10,6 @@ const ACCESS_TOKEN = process.env.IGDB_ACCESS_TOKEN;
 async function fetchFromIGDB(endpoint: string, query: string) {
   if (!CLIENT_ID || !ACCESS_TOKEN || CLIENT_ID === 'your_client_id_here') {
     console.error('IGDB API credentials are not configured.');
-    // Return empty array or throw error if not configured
     if (endpoint === 'games') return [];
     if (endpoint === 'platforms') return [];
     return null;
@@ -47,32 +46,43 @@ function formatScreenshotUrl(url?: string) {
     return url ? `https:${url.replace('t_thumb', 't_screenshot_huge')}` : '/placeholder.jpg';
 }
 
+type GetGamesOptions = {
+    limit?: number;
+    offset?: number;
+    search?: string;
+    platform?: string;
+}
 
-export async function getGames(): Promise<Game[]> {
-  const limit = 500;
-  const totalGamesToFetch = 2500;
-  let allGames: any[] = [];
-  let offset = 0;
+export async function getGames({ limit = 50, offset = 0, search = '', platform }: GetGamesOptions = {}): Promise<Game[]> {
+  let whereClauses = [
+    'total_rating > 80',
+    'total_rating_count > 100',
+    'version_parent = null',
+    'parent_game = null'
+  ];
 
-  while(offset < totalGamesToFetch) {
-    const query = `
-      fields name, cover.url, platforms.name, total_rating;
-      where total_rating > 80 & total_rating_count > 100 & version_parent = null & parent_game = null;
-      sort total_rating_count desc;
-      limit ${limit};
-      offset ${offset};
-    `;
-    const games = await fetchFromIGDB('games', query);
-    if (!games || games.length === 0) {
-      break; 
-    }
-    allGames = allGames.concat(games);
-    offset += limit;
+  if (search) {
+    whereClauses.push(`name ~ *"${search}"*`);
+  }
+
+  if (platform) {
+    whereClauses.push(`platforms.name = "${platform}"`);
   }
   
-  if (!allGames) return [];
+  const whereString = whereClauses.join(' & ');
+  
+  const query = `
+    fields name, cover.url, platforms.name, total_rating;
+    where ${whereString};
+    sort total_rating_count desc;
+    limit ${limit};
+    offset ${offset};
+  `;
+  const games = await fetchFromIGDB('games', query);
+  
+  if (!games) return [];
 
-  return allGames.map((game: any) => ({
+  return games.map((game: any) => ({
     id: game.id,
     name: game.name,
     coverUrl: formatCoverUrl(game.cover?.url),
@@ -126,8 +136,10 @@ export async function getPlatforms(): Promise<Platform[]> {
             if (name.includes('PlayStation')) name = 'PlayStation';
             if (name.includes('Xbox')) name = 'Xbox';
             if (name.includes('PC')) name = 'PC';
+            if (name.includes('Nintendo Switch')) name = 'Nintendo Switch';
+            if (name.includes('macOS')) name = 'macOS';
 
-            if(!platformMap.has(name)) {
+            if(!platformMap.has(name) && popularPlatformIds.includes(p.id)) {
                 platformMap.set(name, { id: p.id, name });
             }
         });
@@ -137,6 +149,8 @@ export async function getPlatforms(): Promise<Platform[]> {
     if (!platformMap.has('PC')) platformMap.set('PC', {id: 6, name: 'PC'});
     if (!platformMap.has('PlayStation')) platformMap.set('PlayStation', {id: 48, name: 'PlayStation'});
     if (!platformMap.has('Xbox')) platformMap.set('Xbox', {id: 49, name: 'Xbox'});
+    if (!platformMap.has('Nintendo Switch')) platformMap.set('Nintendo Switch', {id: 130, name: 'Nintendo Switch'});
+    if (!platformMap.has('macOS')) platformMap.set('macOS', {id: 14, name: 'macOS'});
 
 
     return Array.from(platformMap.values());
