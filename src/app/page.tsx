@@ -11,6 +11,7 @@ import { getGames, getPlatforms } from '@/lib/igdb-api';
 import type { Game, Platform } from '@/lib/types';
 import { useDebounce } from '@/hooks/use-debounce';
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { Label } from '@/components/ui/label';
 
 export default function Home() {
   const [games, setGames] = useState<Game[]>([]);
@@ -128,10 +129,12 @@ export default function Home() {
         </div>
       </header>
       <main className="flex-1 container mx-auto px-4 sm:px-6 md:px-8 py-8">
-        <div className="mb-8 flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+        <div className="mb-8 flex flex-col sm:flex-row gap-4 items-end">
+          <div className="relative flex-1 w-full">
+            <Label htmlFor="search-game" className="mb-2 block text-sm font-medium text-muted-foreground">RECHERCHER UN JEU</Label>
+            <Search className="absolute left-3 bottom-3 h-5 w-5 text-muted-foreground" />
             <Input
+              id="search-game"
               type="search"
               placeholder="Rechercher un jeu..."
               className="pl-10 h-12 text-lg"
@@ -139,33 +142,39 @@ export default function Home() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <Select value={selectedPlatform} onValueChange={(value) => setSelectedPlatform(value)}>
-            <SelectTrigger className="w-full sm:w-[200px] h-12 text-lg">
-              <SelectValue placeholder="Filtrer par plateforme" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Toutes plateformes</SelectItem>
-              {platforms.map(platform => (
-                <SelectItem key={platform.id} value={platform.name}>
-                  {platform.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={sortBy} onValueChange={(value) => setSortBy(value)}>
-            <SelectTrigger className="w-full sm:w-[240px] h-12 text-lg">
-              <SelectValue placeholder="Trier par" />
-            </SelectTrigger>
-            <SelectContent>
-                <SelectItem value="total_rating_count desc">Popularité</SelectItem>
-                <SelectItem value="first_release_date desc">Date de sortie (plus récent)</SelectItem>
-                <SelectItem value="first_release_date asc">Date de sortie (plus ancien)</SelectItem>
-                <SelectItem value="name asc">Nom (A-Z)</SelectItem>
-                <SelectItem value="name desc">Nom (Z-A)</SelectItem>
-                <SelectItem value="total_rating desc">Note (plus élevée)</SelectItem>
-                <SelectItem value="total_rating asc">Note (plus basse)</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="w-full sm:w-[200px]">
+            <Label htmlFor="platform-select" className="mb-2 block text-sm font-medium text-muted-foreground">PLATEFORME</Label>
+            <Select value={selectedPlatform} onValueChange={(value) => setSelectedPlatform(value)}>
+              <SelectTrigger id="platform-select" className="w-full h-12 text-lg">
+                <SelectValue placeholder="Filtrer par plateforme" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Toutes plateformes</SelectItem>
+                {platforms.map(platform => (
+                  <SelectItem key={platform.id} value={platform.name}>
+                    {platform.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="w-full sm:w-[240px]">
+            <Label htmlFor="sort-by-select" className="mb-2 block text-sm font-medium text-muted-foreground">TRIER PAR</Label>
+            <Select value={sortBy} onValueChange={(value) => setSortBy(value)}>
+              <SelectTrigger id="sort-by-select" className="w-full h-12 text-lg">
+                <SelectValue placeholder="Trier par" />
+              </SelectTrigger>
+              <SelectContent>
+                  <SelectItem value="total_rating_count desc">Popularité</SelectItem>
+                  <SelectItem value="first_release_date desc">Date de sortie (plus récent)</SelectItem>
+                  <SelectItem value="first_release_date asc">Date de sortie (plus ancien)</SelectItem>
+                  <SelectItem value="name asc">Nom (A-Z)</SelectItem>
+                  <SelectItem value="name desc">Nom (Z-A)</SelectItem>
+                  <SelectItem value="total_rating desc">Note (plus élevée)</SelectItem>
+                  <SelectItem value="total_rating asc">Note (plus basse)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
         
         {isLoading && (
