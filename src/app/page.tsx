@@ -3,15 +3,19 @@
 
 import { useState, useEffect, useCallback, useTransition } from 'react';
 import Link from 'next/link';
-import { Gamepad, Search } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Gamepad } from 'lucide-react';
 import { GameCard, GameCardSkeleton } from '@/components/game-card';
 import { getGames, getPlatforms } from '@/lib/igdb-api';
 import type { Game, Platform } from '@/lib/types';
 import { useDebounce } from '@/hooks/use-debounce';
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
-import { Label } from '@/components/ui/label';
+import dynamic from 'next/dynamic';
+
+const GameFilters = dynamic(() => import('@/components/game-filters').then(mod => mod.GameFilters), {
+  ssr: false,
+  loading: () => <div className="h-[88px] w-full" suppressHydrationWarning></div>
+});
+
 
 export default function Home() {
   const [games, setGames] = useState<Game[]>([]);
@@ -129,56 +133,19 @@ export default function Home() {
         </div>
       </header>
       <main className="flex-1 container mx-auto px-4 sm:px-6 md:px-8 py-8">
-        <div className="mb-8 flex flex-col sm:flex-row gap-4 items-end" suppressHydrationWarning>
-          <div className="relative flex-1 w-full">
-            <Search className="absolute left-3 bottom-3 h-5 w-5 text-muted-foreground" />
-            <Input
-              id="search-game"
-              type="search"
-              placeholder="Rechercher un jeu..."
-              className="pl-10 h-12 text-lg"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          <div className="w-full sm:w-[200px]">
-            <Label htmlFor="platform-select" className="mb-2 block text-sm font-medium text-muted-foreground">PLATEFORME</Label>
-            <Select value={selectedPlatform} onValueChange={(value) => setSelectedPlatform(value)}>
-              <SelectTrigger id="platform-select" className="w-full h-12 text-lg">
-                <SelectValue placeholder="Filtrer par plateforme" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Toutes plateformes</SelectItem>
-                {platforms.map(platform => (
-                  <SelectItem key={platform.id} value={platform.name}>
-                    {platform.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="w-full sm:w-[240px]">
-            <Label htmlFor="sort-by-select" className="mb-2 block text-sm font-medium text-muted-foreground">TRIER PAR</Label>
-            <Select value={sortBy} onValueChange={(value) => setSortBy(value)}>
-              <SelectTrigger id="sort-by-select" className="w-full h-12 text-lg">
-                <SelectValue placeholder="Trier par" />
-              </SelectTrigger>
-              <SelectContent>
-                  <SelectItem value="total_rating_count desc">Popularité</SelectItem>
-                  <SelectItem value="first_release_date desc">Date de sortie (plus récent)</SelectItem>
-                  <SelectItem value="first_release_date asc">Date de sortie (plus ancien)</SelectItem>
-                  <SelectItem value="name asc">Nom (A-Z)</SelectItem>
-                  <SelectItem value="name desc">Nom (Z-A)</SelectItem>
-                  <SelectItem value="total_rating desc">Note (plus élevée)</SelectItem>
-                  <SelectItem value="total_rating asc">Note (plus basse)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+        <GameFilters
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          selectedPlatform={selectedPlatform}
+          setSelectedPlatform={setSelectedPlatform}
+          sortBy={sortBy}
+          setSortBy={setSortBy}
+          platforms={platforms}
+        />
         
         {isLoading && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mt-6">
-             {Array.from({ length: gamesPerPage }).map((_, i) => (
+             {Array.from({ length: 20 }).map((_, i) => (
               <GameCardSkeleton key={i} />
             ))}
           </div>
