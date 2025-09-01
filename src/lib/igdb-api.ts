@@ -199,30 +199,11 @@ export async function getPlatforms(): Promise<Platform[]> {
 }
 
 export async function getFranchises({ page = 1, limit = 20 }): Promise<{ franchises: Franchise[], totalCount: number }> {
-    const whereClause = 'games.count > 2';
-
-    // Get total count
-    const countResult = await fetchFromIGDB('franchises/count', `where ${whereClause};`);
-    const totalCount = countResult?.count || 0;
-
-    // Fetch franchises for the current page
     const offset = (page - 1) * limit;
-    const query = `
-        fields 
-            name, 
-            games.name, 
-            games.cover.url, 
-            games.total_rating_count;
-        where ${whereClause};
-        sort total_rating_count desc;
-        limit ${limit};
-        offset ${offset};
-    `;
 
-    // The API does not allow sorting by `total_rating_count` directly.
-    // We fetch a larger set, sort it manually, and then paginate.
-    // This is a workaround for the API limitation.
-    // Fetch 5000 top franchises and let the user paginate through them.
+    // The API does not allow sorting by popularity directly or complex where clauses.
+    // Workaround: Fetch a large set of franchises, sort them manually, and then paginate.
+    // Fetch 500 franchises (API max limit per request) and let the user paginate through them.
     const allFranchisesQuery = `
         fields 
             name, 
@@ -255,7 +236,7 @@ export async function getFranchises({ page = 1, limit = 20 }): Promise<{ franchi
         games: franchise.games || [],
     }));
 
-    return { franchises: finalFranchises, totalCount: Math.min(totalCount, 500) };
+    return { franchises: finalFranchises, totalCount: popularFranchises.length };
 }
 
 
