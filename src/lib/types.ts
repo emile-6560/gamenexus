@@ -48,3 +48,12 @@ export type Price = {
   price: number;
   url: string;
 };
+
+export type GameStatus = "played" | "playing" | "unplayed";
+
+export type UserGame = {
+  gameId: number;
+  status: GameStatus;
+  gameName: string;
+  updatedAt: any;
+};

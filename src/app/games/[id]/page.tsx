@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { PlatformIcon } from '@/components/icons';
 import { ArrowLeft, Star, CalendarDays, Tag, Users, Puzzle, Code, Building, Palette, Film } from 'lucide-react';
 import { PriceFinder } from '@/components/price-finder';
+import { GameStatusUpdater } from '@/components/game-status-updater';
 
 type GameDetailPageProps = {
   params: { id: string };
@@ -84,6 +85,7 @@ export default async function GameDetailPage({ params }: GameDetailPageProps) {
               />
             </div>
             <div className="mt-6 space-y-4">
+              <GameStatusUpdater gameId={game.id} gameName={game.name} />
               <DetailItem icon={CalendarDays} label="Date de sortie" value={releaseDate} />
               <DetailItem icon={Code} label="Développeurs" value={renderList(game.developers)} />
               <DetailItem icon={Building} label="Éditeurs" value={renderList(game.publishers)} />
