@@ -5,9 +5,13 @@ import Link from 'next/link';
 import { Gamepad } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/context/auth-context';
+import { Button } from './ui/button';
+import { UserNav } from './user-nav';
 
 export function Header() {
   const pathname = usePathname();
+  const { user, loading } = useAuth();
 
   const navItems = [
     { href: '/', label: 'Jeux' },
@@ -37,6 +41,17 @@ export function Header() {
               </Link>
             ))}
           </nav>
+        </div>
+        <div className="flex items-center gap-4">
+          {loading ? (
+            <div className="h-10 w-24 bg-muted rounded-md animate-pulse" />
+          ) : user ? (
+            <UserNav />
+          ) : (
+            <Button asChild>
+              <Link href="/login">Connexion</Link>
+            </Button>
+          )}
         </div>
       </div>
     </header>
