@@ -204,7 +204,7 @@ export async function getFranchises(): Promise<Franchise[]> {
       games.name, 
       games.cover.url, 
       games.total_rating_count;
-    limit 150;
+    limit 250;
   `;
   const allFranchises = await fetchFromIGDB('franchises', query);
   
@@ -219,7 +219,7 @@ export async function getFranchises(): Promise<Franchise[]> {
         return ratingB - ratingA;
     });
 
-  return popularFranchises.slice(0, 50).map((franchise: any) => ({
+  return popularFranchises.slice(0, 100).map((franchise: any) => ({
     id: franchise.id,
     name: franchise.name,
     coverUrl: franchise.games && franchise.games.length > 0 && franchise.games[0].cover ? formatCoverUrl(franchise.games[0].cover.url) : '/placeholder.jpg',
