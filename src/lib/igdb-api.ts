@@ -47,16 +47,19 @@ function formatScreenshotUrl(url?: string) {
 }
 
 type GetGamesOptions = {
-    limit?: number;
-    offset?: number;
     search?: string;
     platform?: string;
 }
 
-export async function getGames({ limit = 50, offset = 0, search = '', platform }: GetGamesOptions = {}): Promise<Game[]> {
+export async function getGames({ search = '', platform }: GetGamesOptions = {}): Promise<Game[]> {
+  const allGames: Game[] = [];
+  const MAX_GAMES = 25000;
+  const PAGE_SIZE = 500; // IGDB API max limit
+  let offset = 0;
+
   let whereClauses = [
-    'total_rating > 80',
-    'total_rating_count > 100',
+    'total_rating > 0',
+    'total_rating_count > 0',
     'version_parent = null',
     'parent_game = null'
   ];
@@ -68,30 +71,44 @@ export async function getGames({ limit = 50, offset = 0, search = '', platform }
   if (platform) {
     whereClauses.push(`platforms.name = "${platform}"`);
   }
-  
-  const whereString = whereClauses.join(' & ');
-  
-  const query = `
-    fields name, cover.url, platforms.name, total_rating;
-    where ${whereString};
-    sort total_rating_count desc;
-    limit ${limit};
-    offset ${offset};
-  `;
-  const games = await fetchFromIGDB('games', query);
-  
-  if (!games) return [];
 
-  return games.map((game: any) => ({
-    id: game.id,
-    name: game.name,
-    coverUrl: formatCoverUrl(game.cover?.url),
-    platforms: game.platforms || [],
-    rating: game.total_rating || 0,
-    description: '', // Not fetched in list view
-    screenshots: [], // Not fetched in list view
-  }));
+  const whereString = whereClauses.join(' & ');
+
+  while (allGames.length < MAX_GAMES) {
+    const query = `
+      fields name, cover.url, platforms.name, total_rating;
+      where ${whereString};
+      sort total_rating_count desc;
+      limit ${PAGE_SIZE};
+      offset ${offset};
+    `;
+    
+    const games = await fetchFromIGDB('games', query);
+
+    if (!games || games.length === 0) {
+      break; // No more games to fetch
+    }
+
+    allGames.push(...games.map((game: any) => ({
+      id: game.id,
+      name: game.name,
+      coverUrl: formatCoverUrl(game.cover?.url),
+      platforms: game.platforms || [],
+      rating: game.total_rating || 0,
+      description: '', // Not fetched in list view
+      screenshots: [], // Not fetched in list view
+    })));
+
+    offset += PAGE_SIZE;
+
+    if (games.length < PAGE_SIZE) {
+      break; // Last page
+    }
+  }
+
+  return allGames.slice(0, MAX_GAMES);
 }
+
 
 export async function getGameDetails(id: number): Promise<Game | null> {
     const query = `

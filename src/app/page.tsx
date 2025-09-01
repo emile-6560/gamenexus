@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useTransition } from 'react';
 import Link from 'next/link';
 import { Gamepad, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -11,8 +11,6 @@ import { getGames, getPlatforms } from '@/lib/igdb-api';
 import type { Game, Platform } from '@/lib/types';
 import { useDebounce } from '@/hooks/use-debounce';
 
-const GAMES_PER_PAGE = 20;
-
 export default function Home() {
   const [games, setGames] = useState<Game[]>([]);
   const [platforms, setPlatforms] = useState<Platform[]>([]);
@@ -20,31 +18,21 @@ export default function Home() {
   const [selectedPlatform, setSelectedPlatform] = useState('all');
   const [isLoading, setIsLoading] = useState(true);
   const [isClient, setIsClient] = useState(false);
-  const [page, setPage] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
-  const loaderRef = useRef(null);
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
+  const [isPending, startTransition] = useTransition();
 
-  const loadGames = useCallback(async (reset = false) => {
-    if (isLoading || (!hasMore && !reset)) return;
+  const loadGames = useCallback(() => {
     setIsLoading(true);
-
-    const currentPage = reset ? 0 : page;
-    const newGames = await getGames({
-      limit: GAMES_PER_PAGE,
-      offset: currentPage * GAMES_PER_PAGE,
-      search: debouncedSearchQuery,
-      platform: selectedPlatform === 'all' ? undefined : selectedPlatform,
+    startTransition(async () => {
+        const newGames = await getGames({
+            search: debouncedSearchQuery,
+            platform: selectedPlatform === 'all' ? undefined : selectedPlatform,
+        });
+        setGames(newGames);
+        setIsLoading(false);
     });
-    
-    setGames(prev => reset ? newGames : [...prev, ...newGames]);
-    setPage(currentPage + 1);
-    setHasMore(newGames.length === GAMES_PER_PAGE);
-    setIsLoading(false);
-    if(isInitialLoad) setIsInitialLoad(false);
-  }, [isLoading, hasMore, page, debouncedSearchQuery, selectedPlatform, isInitialLoad]);
+  }, [debouncedSearchQuery, selectedPlatform]);
 
   useEffect(() => {
     setIsClient(true);
@@ -56,34 +44,9 @@ export default function Home() {
   }, []);
   
   useEffect(() => {
-    setGames([]);
-    setPage(0);
-    setHasMore(true);
-    loadGames(true);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedSearchQuery, selectedPlatform]);
+    loadGames();
+  }, [loadGames]);
 
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && !isLoading && hasMore && !isInitialLoad) {
-          loadGames();
-        }
-      },
-      { threshold: 1.0 }
-    );
-
-    if (loaderRef.current) {
-      observer.observe(loaderRef.current);
-    }
-
-    return () => {
-      if (loaderRef.current) {
-        observer.unobserve(loaderRef.current);
-      }
-    };
-  }, [isLoading, hasMore, loadGames, isInitialLoad]);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -130,30 +93,24 @@ export default function Home() {
             </>
           )}
         </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-          {games.map(game => (
-            <GameCard key={game.id} game={game} />
-          ))}
-        </div>
         
         {isLoading && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mt-6">
-             {Array.from({ length: 10 }).map((_, i) => (
+             {Array.from({ length: 20 }).map((_, i) => (
               <GameCardSkeleton key={i} />
             ))}
           </div>
         )}
-        
-        <div ref={loaderRef} />
 
-        {!isLoading && !hasMore && games.length > 0 && (
-          <div className="text-center py-10 text-muted-foreground">
-            <p>You've reached the end of the list.</p>
-          </div>
+        {!isLoading && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+            {games.map(game => (
+                <GameCard key={game.id} game={game} />
+            ))}
+            </div>
         )}
 
-        {!isLoading && games.length === 0 && !isInitialLoad &&(
+        {!isLoading && games.length === 0 && (
           <div className="text-center py-20">
             <h2 className="text-2xl font-semibold mb-2">No Games Found</h2>
             <p className="text-muted-foreground">Try adjusting your search or filter.</p>
