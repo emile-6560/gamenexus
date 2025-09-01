@@ -1,3 +1,4 @@
+
 'use server';
 
 import type { Game, Platform, GameImage } from './types';
@@ -48,17 +49,30 @@ function formatScreenshotUrl(url?: string) {
 
 
 export async function getGames(): Promise<Game[]> {
-  const query = `
-    fields name, cover.url, platforms.name, total_rating;
-    where total_rating > 80 & total_rating_count > 100 & version_parent = null & parent_game = null;
-    sort total_rating_count desc;
-    limit 200;
-  `;
-  const games = await fetchFromIGDB('games', query);
-  
-  if (!games) return [];
+  const limit = 500;
+  const totalGamesToFetch = 2500;
+  let allGames: any[] = [];
+  let offset = 0;
 
-  return games.map((game: any) => ({
+  while(offset < totalGamesToFetch) {
+    const query = `
+      fields name, cover.url, platforms.name, total_rating;
+      where total_rating > 80 & total_rating_count > 100 & version_parent = null & parent_game = null;
+      sort total_rating_count desc;
+      limit ${limit};
+      offset ${offset};
+    `;
+    const games = await fetchFromIGDB('games', query);
+    if (!games || games.length === 0) {
+      break; 
+    }
+    allGames = allGames.concat(games);
+    offset += limit;
+  }
+  
+  if (!allGames) return [];
+
+  return allGames.map((game: any) => ({
     id: game.id,
     name: game.name,
     coverUrl: formatCoverUrl(game.cover?.url),
