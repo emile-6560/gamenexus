@@ -19,6 +19,8 @@ export function GameStatusUpdater({ gameId, gameName }: { gameId: number; gameNa
   const { toast } = useToast();
 
   useEffect(() => {
+    if (authLoading) return; // Wait until auth state is determined
+    
     if (!user) {
       setLoading(false);
       return;
@@ -30,12 +32,14 @@ export function GameStatusUpdater({ gameId, gameName }: { gameId: number; gameNa
       const docSnap = await getDoc(userGameRef);
       if (docSnap.exists()) {
         setStatus(docSnap.data().status as GameStatus);
+      } else {
+        setStatus('unplayed');
       }
       setLoading(false);
     };
 
     fetchStatus();
-  }, [user, gameId]);
+  }, [user, gameId, authLoading]);
   
   const handleStatusChange = async (newStatus: GameStatus) => {
     if (!user) {
@@ -44,6 +48,7 @@ export function GameStatusUpdater({ gameId, gameName }: { gameId: number; gameNa
     }
     
     setLoading(true);
+    const oldStatus = status;
     setStatus(newStatus);
 
     try {
@@ -51,20 +56,27 @@ export function GameStatusUpdater({ gameId, gameName }: { gameId: number; gameNa
       toast({ title: 'Statut mis à jour', description: `Le statut de "${gameName}" est maintenant "${translateStatus(newStatus)}".` });
     } catch (error) {
         toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de mettre à jour le statut du jeu.' });
-        // Revert status on error
-        const userGameRef = doc(db, 'users', user.uid, 'games', String(gameId));
-        const docSnap = await getDoc(userGameRef);
-        if (docSnap.exists()) {
-            setStatus(docSnap.data().status as GameStatus);
-        } else {
-            setStatus('unplayed');
-        }
+        setStatus(oldStatus);
     } finally {
         setLoading(false);
     }
   };
   
-  if (authLoading) return null;
+  if (authLoading) {
+    return (
+        <Card>
+            <CardHeader className="p-4">
+                <h3 className="font-semibold text-lg">Mon expérience</h3>
+            </CardHeader>
+            <CardContent className="p-4 pt-0">
+                 <div className="flex items-center justify-center h-10">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                </div>
+            </CardContent>
+        </Card>
+    );
+  }
+
   if (!user) return null;
 
   const translateStatus = (status: GameStatus) => {

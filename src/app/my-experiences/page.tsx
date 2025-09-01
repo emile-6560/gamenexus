@@ -5,14 +5,14 @@ import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { GameCard, GameCardSkeleton } from '@/components/game-card';
-import type { Game, UserGame } from '@/lib/types';
+import type { Game } from '@/lib/types';
 import { getUserGames } from '@/app/actions';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function MyExperiencesPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
-  const [games, setGames] = useState<Game[]>([]);
+  const [games, setGames] = useState<(Game & { status: string })[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,16 +26,19 @@ export default function MyExperiencesPage() {
       const fetchGames = async () => {
         setLoading(true);
         const userGames = await getUserGames(user.uid);
-        setGames(userGames);
+        setGames(userGames as (Game & { status: string })[]);
         setLoading(false);
       };
       fetchGames();
+    } else if (!authLoading) {
+        setLoading(false);
     }
-  }, [user]);
+  }, [user, authLoading]);
 
-  if (authLoading || !user) {
+  if (authLoading || loading) {
     return (
         <div className="container mx-auto px-4 sm:px-6 md:px-8 py-8">
+             <h1 className="text-4xl font-extrabold tracking-tighter mb-8">Mes Expériences</h1>
              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mt-6">
                 {Array.from({ length: 10 }).map((_, i) => (
                 <GameCardSkeleton key={i} />
@@ -45,21 +48,22 @@ export default function MyExperiencesPage() {
     );
   }
 
-  const playingGames = games.filter(g => (g as any).status === 'playing');
-  const playedGames = games.filter(g => (g as any).status === 'played');
+  if (!user) {
+      // This part should ideally not be reached due to the redirect logic,
+      // but it's good for robustness.
+      return (
+          <div className="container mx-auto px-4 sm:px-6 md:px-8 py-8 text-center">
+              <h1 className="text-2xl font-bold">Veuillez vous connecter</h1>
+              <p className="text-muted-foreground">Vous devez être connecté pour voir vos expériences.</p>
+          </div>
+      )
+  }
 
-  const GameList = ({ games, status }: { games: Game[], status: string }) => {
-    if (loading) {
-        return (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mt-6">
-                {Array.from({ length: 5 }).map((_, i) => (
-                <GameCardSkeleton key={i} />
-                ))}
-            </div>
-        )
-    }
+  const playingGames = games.filter(g => g.status === 'playing');
+  const playedGames = games.filter(g => g.status === 'played');
 
-    if (games.length === 0) {
+  const GameList = ({ games: gameList, status }: { games: (Game & {status: string})[], status: string }) => {
+    if (gameList.length === 0) {
         return (
             <div className="text-center py-20">
                 <h2 className="text-2xl font-semibold mb-2">Aucun jeu {status}</h2>
@@ -70,7 +74,7 @@ export default function MyExperiencesPage() {
 
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mt-6">
-            {games.map(game => (
+            {gameList.map(game => (
                 <GameCard key={game.id} game={game} />
             ))}
         </div>
