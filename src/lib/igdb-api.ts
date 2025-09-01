@@ -52,7 +52,7 @@ export async function getGames(): Promise<Game[]> {
     fields name, cover.url, platforms.name, total_rating;
     where total_rating > 80 & total_rating_count > 100 & version_parent = null & parent_game = null;
     sort total_rating_count desc;
-    limit 40;
+    limit 200;
   `;
   const games = await fetchFromIGDB('games', query);
   

@@ -89,7 +89,7 @@ export default function Home() {
 
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-            {Array.from({ length: 20 }).map((_, i) => (
+            {Array.from({ length: 40 }).map((_, i) => (
               <GameCardSkeleton key={i} />
             ))}
           </div>
