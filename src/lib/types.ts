@@ -27,6 +27,6 @@ export type Game = {
 
 export type Price = {
   retailer: string;
-  price: string;
+  price: number;
   url: string;
 };

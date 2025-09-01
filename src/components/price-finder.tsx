@@ -82,7 +82,7 @@ export function PriceFinder({ gameName }: { gameName: string }) {
                 {prices.map((price, index) => (
                   <TableRow key={index}>
                     <TableCell className="font-medium">{price.retailer}</TableCell>
-                    <TableCell className="text-right font-semibold text-primary">{price.price}</TableCell>
+                    <TableCell className="text-right font-semibold text-primary">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(price.price)}</TableCell>
                     <TableCell className="text-right">
                       <Button asChild variant="ghost" size="icon">
                         <a href={price.url} target="_blank" rel="noopener noreferrer">

@@ -19,8 +19,8 @@ export type AggregateGamePricesInput = z.infer<typeof AggregateGamePricesInputSc
 const AggregateGamePricesOutputSchema = z.object({
   prices: z.array(
     z.object({
-      retailer: z.string().describe('Le nom du détaillant.'),
-      price: z.string().describe('Le prix du jeu chez le détaillant.'),
+      retailer: z.string().describe('Le nom du détaillant (ex: Amazon, Steam, etc.).'),
+      price: z.number().describe('Le prix du jeu en tant que nombre, sans symbole de devise.'),
       url: z.string().describe("L'URL de la page du jeu sur le site du détaillant."),
     })
   ).describe('Un tableau de prix de différents détaillants.'),
@@ -35,11 +35,13 @@ const prompt = ai.definePrompt({
   name: 'aggregateGamePricesPrompt',
   input: {schema: AggregateGamePricesInputSchema},
   output: {schema: AggregateGamePricesOutputSchema},
-  prompt: `Vous êtes un service d'agrégation de prix pour les jeux vidéo. Étant donné le nom d'un jeu, vous rechercherez son prix sur les principaux détaillants en ligne et renverrez une liste de prix, de noms de détaillants et d'URL.
+  prompt: `Vous êtes un service expert d'agrégation de prix pour les jeux vidéo.
+Votre tâche est de trouver le prix pour le jeu spécifié sur plusieurs grands détaillants en ligne comme Steam, Amazon, Instant Gaming, et le PlayStation Store.
 
-Nom du jeu: {{{gameName}}}
+Jeu: {{{gameName}}}
 
-Formatez votre réponse sous forme de tableau JSON d'objets, où chaque objet a les clés 'retailer', 'price' et 'url'. Le champ 'price' doit inclure le symbole de la devise.
+Veuillez retourner une liste de prix. Pour chaque détaillant, fournissez le nom du détaillant, le prix sous forme de nombre (par exemple, 59.99), et un lien direct vers la page du produit.
+Si vous ne trouvez aucun prix, retournez un tableau vide.
 `,
 });
 
