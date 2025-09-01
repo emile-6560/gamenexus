@@ -1,0 +1,44 @@
+
+'use client';
+
+import Link from 'next/link';
+import { Gamepad } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { cn } from '@/lib/utils';
+
+export function Header() {
+  const pathname = usePathname();
+
+  const navItems = [
+    { href: '/', label: 'Jeux' },
+    { href: '/franchises', label: 'Franchises' },
+    { href: '/news', label: 'Actualités' },
+  ];
+
+  return (
+    <header className="py-4 px-4 sm:px-6 md:px-8 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-20">
+      <div className="container mx-auto flex items-center justify-between gap-8">
+        <div className="flex items-center gap-8">
+          <Link href="/" className="flex items-center gap-2">
+            <Gamepad className="h-8 w-8 text-primary" />
+            <h1 className="text-2xl font-bold text-foreground tracking-tight">GameFinder</h1>
+          </Link>
+          <nav className="hidden md:flex items-center gap-6">
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  'text-lg font-medium transition-colors hover:text-primary',
+                  pathname === item.href ? 'text-primary' : 'text-muted-foreground'
+                )}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
+      </div>
+    </header>
+  );
+}

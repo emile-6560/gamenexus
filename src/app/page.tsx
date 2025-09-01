@@ -2,8 +2,6 @@
 'use client';
 
 import { useState, useEffect, useCallback, useTransition } from 'react';
-import Link from 'next/link';
-import { Gamepad } from 'lucide-react';
 import { GameCard, GameCardSkeleton } from '@/components/game-card';
 import { getGames, getPlatforms } from '@/lib/igdb-api';
 import type { Game, Platform } from '@/lib/types';
@@ -125,14 +123,6 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <header className="py-6 px-4 sm:px-6 md:px-8 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-10">
-        <div className="container mx-auto flex items-center justify-between gap-4">
-          <Link href="/" className="flex items-center gap-2">
-            <Gamepad className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-bold text-foreground tracking-tight">GameFinder</h1>
-          </Link>
-        </div>
-      </header>
       <main className="flex-1 container mx-auto px-4 sm:px-6 md:px-8 py-8">
         <GameFilters
           searchQuery={searchQuery}
@@ -169,7 +159,7 @@ export default function Home() {
       </main>
 
       {!isLoading && totalPages > 1 && (
-        <footer className="py-6 px-4 sm:px-6 md:px-8 border-t">
+        <div className="py-6 px-4 sm:px-6 md:px-8 border-t">
           <div className="container mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <span>Jeux par page:</span>
@@ -199,7 +189,7 @@ export default function Home() {
               Page {currentPage} sur {totalPages} ({totalGames} jeux)
             </div>
           </div>
-        </footer>
+        </div>
       )}
     </div>
   );
