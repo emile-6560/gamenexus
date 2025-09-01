@@ -20,6 +20,11 @@ type IdName = {
   name: string;
 }
 
+export type GameVideo = {
+  id: number;
+  video_id: string;
+}
+
 export type Game = {
   id: number;
   name: string;
@@ -32,6 +37,8 @@ export type Game = {
   genres: IdName[];
   franchises: IdName[];
   gameModes: IdName[];
+  themes: IdName[];
+  videos: GameVideo[];
   developers: IdName[];
   publishers: IdName[];
 };

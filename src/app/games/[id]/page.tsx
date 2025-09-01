@@ -5,7 +5,7 @@ import { getGameDetails } from '@/lib/igdb-api';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { PlatformIcon } from '@/components/icons';
-import { ArrowLeft, Star, CalendarDays, Tag, Users, Puzzle, Code, Building } from 'lucide-react';
+import { ArrowLeft, Star, CalendarDays, Tag, Users, Puzzle, Code, Building, Palette, Film } from 'lucide-react';
 import { PriceFinder } from '@/components/price-finder';
 
 type GameDetailPageProps = {
@@ -39,9 +39,11 @@ export default async function GameDetailPage({ params }: GameDetailPageProps) {
     : 'N/A';
   
   const renderList = (items: { name: string }[]) =>
-    items.length > 0
+    items && items.length > 0
       ? items.map(item => <Badge key={item.name} variant="secondary" className="mr-1 mb-1">{item.name}</Badge>)
       : 'N/A';
+
+  const firstTrailer = game.videos && game.videos.length > 0 ? game.videos[0] : null;
 
   return (
     <div className="animate-in fade-in-50 duration-500">
@@ -114,7 +116,24 @@ export default async function GameDetailPage({ params }: GameDetailPageProps) {
               <DetailItem icon={Tag} label="Genres" value={renderList(game.genres)} />
               <DetailItem icon={Users} label="Franchise" value={renderList(game.franchises)} />
               <DetailItem icon={Puzzle} label="Modes de jeu" value={renderList(game.gameModes)} />
+              <DetailItem icon={Palette} label="Thèmes" value={renderList(game.themes)} />
             </div>
+
+            {firstTrailer && (
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold mb-4 flex items-center"><Film className="mr-2 h-6 w-6" /> Bande-annonce</h2>
+                <div className="aspect-video relative rounded-lg overflow-hidden border">
+                  <iframe
+                    src={`https://www.youtube.com/embed/${firstTrailer.video_id}`}
+                    title={`Bande-annonce de ${game.name}`}
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="w-full h-full"
+                  ></iframe>
+                </div>
+              </div>
+            )}
 
             <div className="mb-8">
                 <h2 className="text-2xl font-bold mb-4">Captures d'écran</h2>

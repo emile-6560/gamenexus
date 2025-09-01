@@ -107,6 +107,8 @@ export async function getGames({ search = '', platform, page = 1, limit = 100, s
       genres: [],
       franchises: [],
       gameModes: [],
+      themes: [],
+      videos: [],
       developers: [],
       publishers: [],
   }));
@@ -126,8 +128,10 @@ export async function getGameDetails(id: number): Promise<Game | null> {
         screenshots.url, 
         first_release_date,
         genres.name,
+        themes.name,
         franchises.name,
         game_modes.name,
+        videos.video_id,
         involved_companies.company.name,
         involved_companies.developer,
         involved_companies.publisher;
@@ -160,8 +164,10 @@ export async function getGameDetails(id: number): Promise<Game | null> {
         })),
         releaseDate: game.first_release_date,
         genres: game.genres || [],
+        themes: game.themes || [],
         franchises: game.franchises || [],
         gameModes: game.game_modes || [],
+        videos: game.videos || [],
         developers: developers,
         publishers: publishers,
     };
