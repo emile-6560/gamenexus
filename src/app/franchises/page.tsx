@@ -1,30 +1,168 @@
 
-import { getFranchises } from '@/lib/igdb-api';
-import { FranchiseCard, FranchiseCardSkeleton } from '@/components/franchise-card';
 
-export default async function FranchisesPage() {
-  const franchises = await getFranchises();
+'use client';
+
+import { useState, useEffect, useCallback, useTransition } from 'react';
+import { FranchiseCard, FranchiseCardSkeleton } from '@/components/franchise-card';
+import { getFranchises } from '@/lib/igdb-api';
+import type { Franchise } from '@/lib/types';
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+export default function FranchisesPage() {
+  const [franchises, setFranchises] = useState<Franchise[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
+  const [totalItems, setTotalItems] = useState(0);
+  const [isPending, startTransition] = useTransition();
+
+  const loadFranchises = useCallback(() => {
+    setIsLoading(true);
+    startTransition(async () => {
+      const { franchises: newFranchises, totalCount } = await getFranchises({
+        page: currentPage,
+        limit: itemsPerPage,
+      });
+      setFranchises(newFranchises);
+      setTotalItems(totalCount);
+      setIsLoading(false);
+    });
+  }, [currentPage, itemsPerPage]);
+
+  useEffect(() => {
+    loadFranchises();
+  }, [loadFranchises]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [itemsPerPage]);
+
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+  
+  const renderPagination = () => {
+    const pageNumbers = [];
+    const maxPagesToShow = 5;
+    const halfMaxPages = Math.floor(maxPagesToShow / 2);
+
+    let startPage = Math.max(1, currentPage - halfMaxPages);
+    let endPage = Math.min(totalPages, currentPage + halfMaxPages);
+
+    if (currentPage - halfMaxPages < 1) {
+        endPage = Math.min(totalPages, endPage + (halfMaxPages - (currentPage - 1)));
+    }
+    if (currentPage + halfMaxPages > totalPages) {
+        startPage = Math.max(1, startPage - (currentPage + halfMaxPages - totalPages));
+    }
+
+    if (startPage > 1) {
+        pageNumbers.push(
+            <PaginationItem key="1">
+                <PaginationLink href="#" onClick={(e) => { e.preventDefault(); handlePageChange(1); }}>1</PaginationLink>
+            </PaginationItem>
+        );
+        if (startPage > 2) {
+            pageNumbers.push(<PaginationItem key="start-ellipsis"><PaginationEllipsis /></PaginationItem>);
+        }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+        pageNumbers.push(
+            <PaginationItem key={i}>
+                <PaginationLink href="#" onClick={(e) => { e.preventDefault(); handlePageChange(i); }} isActive={i === currentPage}>
+                    {i}
+                </PaginationLink>
+            </PaginationItem>
+        );
+    }
+
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            pageNumbers.push(<PaginationItem key="end-ellipsis"><PaginationEllipsis /></PaginationItem>);
+        }
+        pageNumbers.push(
+            <PaginationItem key={totalPages}>
+                <PaginationLink href="#" onClick={(e) => { e.preventDefault(); handlePageChange(totalPages); }}>{totalPages}</PaginationLink>
+            </PaginationItem>
+        );
+    }
+
+    return pageNumbers;
+  };
+
 
   return (
-    <main className="container mx-auto px-4 sm:px-6 md:px-8 py-8">
-      <div className="mb-8">
-        <h1 className="text-4xl font-extrabold tracking-tighter">Franchises de jeux</h1>
-        <p className="text-lg text-muted-foreground mt-2">Découvrez les plus grandes sagas du jeu vidéo.</p>
-      </div>
-
-      {franchises.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-          {franchises.map(franchise => (
-            <FranchiseCard key={franchise.id} franchise={franchise} />
-          ))}
+    <div className="flex flex-col min-h-screen">
+      <main className="flex-1 container mx-auto px-4 sm:px-6 md:px-8 py-8">
+        <div className="mb-8">
+          <h1 className="text-4xl font-extrabold tracking-tighter">Franchises de jeux</h1>
+          <p className="text-lg text-muted-foreground mt-2">Découvrez les plus grandes sagas du jeu vidéo.</p>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-          {Array.from({ length: 15 }).map((_, i) => (
-            <FranchiseCardSkeleton key={i} />
-          ))}
+        
+        {isLoading && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+            {Array.from({ length: itemsPerPage }).map((_, i) => (
+              <FranchiseCardSkeleton key={i} />
+            ))}
+          </div>
+        )}
+
+        {!isLoading && franchises.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+            {franchises.map(franchise => (
+              <FranchiseCard key={franchise.id} franchise={franchise} />
+            ))}
+          </div>
+        )}
+
+        {!isLoading && franchises.length === 0 && (
+            <div className="text-center py-20">
+                <h2 className="text-2xl font-semibold mb-2">Aucune franchise trouvée</h2>
+                <p className="text-muted-foreground">Nous n'avons pas pu charger les franchises. Réessayez plus tard.</p>
+            </div>
+        )}
+      </main>
+
+      {!isLoading && totalPages > 1 && (
+        <div className="py-6 px-4 sm:px-6 md:px-8 border-t">
+          <div className="container mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span>Franchises par page:</span>
+              <Select value={String(itemsPerPage)} onValueChange={(value) => setItemsPerPage(Number(value))}>
+                <SelectTrigger className="w-[80px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="20">20</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                  <SelectItem value="100">100</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious href="#" onClick={(e) => { e.preventDefault(); handlePageChange(currentPage - 1); }} />
+                </PaginationItem>
+                {renderPagination()}
+                <PaginationItem>
+                  <PaginationNext href="#" onClick={(e) => { e.preventDefault(); handlePageChange(currentPage + 1); }} />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+            <div className="text-sm text-muted-foreground">
+              Page {currentPage} sur {totalPages} ({totalItems} franchises)
+            </div>
+          </div>
         </div>
       )}
-    </main>
+    </div>
   );
 }
+
