@@ -19,8 +19,13 @@ export function GameStatusUpdater({ gameId, gameName }: { gameId: number; gameNa
   const { toast } = useToast();
 
   useEffect(() => {
-    if (authLoading) return; // Wait until auth state is determined
+    // We are dependent on auth state, so if that's loading, we are too.
+    if (authLoading) {
+      setLoading(true);
+      return;
+    }
     
+    // If there is no user, there is no status to fetch.
     if (!user) {
       setLoading(false);
       return;
@@ -28,14 +33,21 @@ export function GameStatusUpdater({ gameId, gameName }: { gameId: number; gameNa
 
     const fetchStatus = async () => {
       setLoading(true);
-      const userGameRef = doc(db, 'users', user.uid, 'games', String(gameId));
-      const docSnap = await getDoc(userGameRef);
-      if (docSnap.exists()) {
-        setStatus(docSnap.data().status as GameStatus);
-      } else {
+      try {
+        const userGameRef = doc(db, 'users', user.uid, 'games', String(gameId));
+        const docSnap = await getDoc(userGameRef);
+        if (docSnap.exists()) {
+          setStatus(docSnap.data().status as GameStatus);
+        } else {
+          setStatus('unplayed');
+        }
+      } catch (error) {
+        console.error("Error fetching game status:", error);
+        // Keep status as 'unplayed' on error
         setStatus('unplayed');
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     fetchStatus();
@@ -77,6 +89,7 @@ export function GameStatusUpdater({ gameId, gameName }: { gameId: number; gameNa
     );
   }
 
+  // Don't render anything if the user is not logged in.
   if (!user) return null;
 
   const translateStatus = (status: GameStatus) => {
