@@ -204,15 +204,15 @@ export async function getFranchises(): Promise<Franchise[]> {
       games.name, 
       games.cover.url, 
       games.total_rating_count;
-    where 
-      games.total_rating_count > 1000 & games.count > 2;
-    limit 100;
+    limit 150;
   `;
   const allFranchises = await fetchFromIGDB('franchises', query);
   
   if (!allFranchises) return [];
 
-  const popularFranchises = allFranchises
+  const franchisesWithGames = allFranchises.filter((f: any) => f.games && f.games.length > 2);
+
+  const popularFranchises = franchisesWithGames
     .sort((a: any, b: any) => {
         const ratingA = a.games.reduce((sum: number, g: any) => sum + (g.total_rating_count || 0), 0);
         const ratingB = b.games.reduce((sum: number, g: any) => sum + (g.total_rating_count || 0), 0);
