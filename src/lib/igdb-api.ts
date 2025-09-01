@@ -52,9 +52,10 @@ type GetGamesOptions = {
     platform?: string;
     page?: number;
     limit?: number;
+    sortBy?: string;
 }
 
-export async function getGames({ search = '', platform, page = 1, limit = 100 }: GetGamesOptions = {}): Promise<{ games: Game[], totalCount: number }> {
+export async function getGames({ search = '', platform, page = 1, limit = 100, sortBy = 'total_rating_count desc' }: GetGamesOptions = {}): Promise<{ games: Game[], totalCount: number }> {
   
   const targetPlatformIds = [6, 48, 49, 130, 167, 169]; // PC, PS4, Xbox One, Switch, PS5, Xbox Series X/S
 
@@ -63,7 +64,8 @@ export async function getGames({ search = '', platform, page = 1, limit = 100 }:
     'total_rating_count > 0',
     'version_parent = null',
     'parent_game = null',
-    `platforms = (${targetPlatformIds.join(',')})`
+    `platforms = (${targetPlatformIds.join(',')})`,
+    'first_release_date != null',
   ];
 
   if (search) {
@@ -84,9 +86,9 @@ export async function getGames({ search = '', platform, page = 1, limit = 100 }:
 
   // Fetch games for the current page
   const gamesQuery = `
-      fields name, cover.url, platforms.name, total_rating;
+      fields name, cover.url, platforms.name, total_rating, first_release_date;
       where ${whereString};
-      sort total_rating_count desc;
+      sort ${sortBy};
       limit ${limit};
       offset ${offset};
   `;
@@ -109,7 +111,7 @@ export async function getGames({ search = '', platform, page = 1, limit = 100 }:
 
 export async function getGameDetails(id: number): Promise<Game | null> {
     const query = `
-      fields name, summary, cover.url, platforms.name, total_rating, screenshots.url;
+      fields name, summary, cover.url, platforms.name, total_rating, screenshots.url, first_release_date;
       where id = ${id};
     `;
     const games = await fetchFromIGDB('games', query);
@@ -164,7 +166,6 @@ export async function getPlatforms(): Promise<Platform[]> {
     if (!platformMap.has('PlayStation')) platformMap.set('PlayStation', {id: 48, name: 'PlayStation'});
     if (!platformMap.has('Xbox')) platformMap.set('Xbox', {id: 49, name: 'Xbox'});
     if (!platformMap.has('Nintendo Switch')) platformMap.set('Nintendo Switch', {id: 130, name: 'Nintendo Switch'});
-    if (!platformMap.has('macOS')) platformMap.set('macOS', {id: 14, name: 'macOS'});
 
 
     return Array.from(platformMap.values());

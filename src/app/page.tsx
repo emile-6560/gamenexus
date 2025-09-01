@@ -17,6 +17,7 @@ export default function Home() {
   const [platforms, setPlatforms] = useState<Platform[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPlatform, setSelectedPlatform] = useState('all');
+  const [sortBy, setSortBy] = useState('total_rating_count desc');
   const [isLoading, setIsLoading] = useState(true);
   
   const [currentPage, setCurrentPage] = useState(1);
@@ -34,12 +35,13 @@ export default function Home() {
             platform: selectedPlatform === 'all' ? undefined : selectedPlatform,
             page: currentPage,
             limit: gamesPerPage,
+            sortBy: sortBy,
         });
         setGames(newGames);
         setTotalGames(totalCount);
         setIsLoading(false);
     });
-  }, [debouncedSearchQuery, selectedPlatform, currentPage, gamesPerPage]);
+  }, [debouncedSearchQuery, selectedPlatform, currentPage, gamesPerPage, sortBy]);
 
   useEffect(() => {
     const fetchPlatforms = async () => {
@@ -55,7 +57,7 @@ export default function Home() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearchQuery, selectedPlatform, gamesPerPage]);
+  }, [debouncedSearchQuery, selectedPlatform, gamesPerPage, sortBy]);
 
   const totalPages = Math.ceil(totalGames / gamesPerPage);
 
@@ -150,6 +152,20 @@ export default function Home() {
               ))}
             </SelectContent>
           </Select>
+          <Select value={sortBy} onValueChange={(value) => setSortBy(value)}>
+            <SelectTrigger className="w-full sm:w-[240px] h-12 text-lg">
+              <SelectValue placeholder="Trier par" />
+            </SelectTrigger>
+            <SelectContent>
+                <SelectItem value="total_rating_count desc">Popularité</SelectItem>
+                <SelectItem value="first_release_date desc">Date de sortie (plus récent)</SelectItem>
+                <SelectItem value="first_release_date asc">Date de sortie (plus ancien)</SelectItem>
+                <SelectItem value="name asc">Nom (A-Z)</SelectItem>
+                <SelectItem value="name desc">Nom (Z-A)</SelectItem>
+                <SelectItem value="total_rating desc">Note (plus élevée)</SelectItem>
+                <SelectItem value="total_rating asc">Note (plus basse)</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         
         {isLoading && (
@@ -171,7 +187,7 @@ export default function Home() {
         {!isLoading && games.length === 0 && (
           <div className="text-center py-20">
             <h2 className="text-2xl font-semibold mb-2">Aucun jeu trouvé</h2>
-            <p className="text-muted-foreground">Essayez d'ajuster votre recherche ou votre filtre.</p>
+            <p className="text-muted-foreground">Essayez d'ajuster votre recherche ou vos filtres.</p>
           </div>
         )}
       </main>
