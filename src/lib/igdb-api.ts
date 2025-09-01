@@ -213,14 +213,27 @@ export async function getPlatforms(): Promise<Platform[]> {
 
 export async function getFranchises(): Promise<Franchise[]> {
   const query = `
-    fields name, games.name, games.cover.url;
-    limit 150;
+    fields 
+      name, 
+      games.name, 
+      games.cover.url, 
+      games.total_rating_count;
+    where 
+      games.total_rating_count > 1000;
+    limit 100;
+    sort games.total_rating_count desc;
   `;
   const allFranchises = await fetchFromIGDB('franchises', query);
   
   if (!allFranchises) return [];
 
-  const popularFranchises = allFranchises.filter((f: any) => f.games && f.games.length > 5);
+  const popularFranchises = allFranchises
+    .filter((f: any) => f.games && f.games.length > 2)
+    .sort((a: any, b: any) => {
+        const ratingA = a.games[0]?.total_rating_count || 0;
+        const ratingB = b.games[0]?.total_rating_count || 0;
+        return ratingB - ratingA;
+    });
 
   return popularFranchises.slice(0, 50).map((franchise: any) => ({
     id: franchise.id,
