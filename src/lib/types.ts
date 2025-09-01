@@ -1,3 +1,4 @@
+
 export type PlatformName = 
   | 'PC'
   | 'PlayStation'
@@ -57,3 +58,10 @@ export type UserGame = {
   gameName: string;
   updatedAt: any;
 };
+
+export type Franchise = {
+  id: number;
+  name: string;
+  coverUrl: string;
+  games: Game[];
+}

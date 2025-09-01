@@ -1,7 +1,7 @@
 
 'use server';
 
-import type { Game, Platform } from './types';
+import type { Game, Platform, Franchise } from './types';
 
 const IGDB_API_URL = 'https://api.igdb.com/v4';
 const CLIENT_ID = process.env.IGDB_CLIENT_ID;
@@ -13,6 +13,7 @@ async function fetchFromIGDB(endpoint: string, query: string) {
     if (endpoint.endsWith('/count')) return { count: 0 };
     if (endpoint === 'games') return [];
     if (endpoint === 'platforms') return [];
+    if (endpoint === 'franchises') return [];
     return null;
   }
   
@@ -208,4 +209,21 @@ export async function getPlatforms(): Promise<Platform[]> {
 
 
     return Array.from(platformMap.values());
+}
+
+export async function getFranchises(): Promise<Franchise[]> {
+  const query = `
+    fields name, games.name, games.cover.url;
+    where games.count > 5 & total_rating_count > 1000;
+    sort total_rating_count desc;
+    limit 50;
+  `;
+  const franchises = await fetchFromIGDB('franchises', query);
+  
+  return franchises.map((franchise: any) => ({
+    id: franchise.id,
+    name: franchise.name,
+    coverUrl: franchise.games && franchise.games.length > 0 && franchise.games[0].cover ? formatCoverUrl(franchise.games[0].cover.url) : '/placeholder.jpg',
+    games: franchise.games || [],
+  }));
 }
