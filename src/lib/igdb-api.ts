@@ -130,7 +130,7 @@ export async function getGames({ search = '', platform, page = 1, limit = 100, s
 
   const formattedGames = games.map(mapGame);
 
-  return { games: formattedGames, totalCount: Math.min(totalCount, 10000) };
+  return { games: formattedGames, totalCount: Math.min(totalCount, 50000) };
 }
 
 
