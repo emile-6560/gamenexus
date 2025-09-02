@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -52,7 +53,10 @@ const aggregateGamePricesFlow = ai.defineFlow(
     outputSchema: AggregateGamePricesOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
+    const {output} = await prompt({
+      ...input,
+      model: 'googleai/gemini-2.5-pro',
+    });
     return output!;
   }
 );
