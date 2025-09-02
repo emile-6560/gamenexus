@@ -5,29 +5,15 @@
  * @fileOverview A conversational chat flow for finding games.
  *
  * - chat - A function that handles a conversational turn.
- * - ChatMessage - The type for a single message in the conversation.
- * - ChatInput - The input type for the chat function.
- * - ChatOutput - The return type for the chat function.
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
-
-export const ChatMessageSchema = z.object({
-  role: z.enum(['user', 'model']),
-  content: z.string(),
-});
-export type ChatMessage = z.infer<typeof ChatMessageSchema>;
-
-export const ChatInputSchema = z.object({
-  history: z.array(ChatMessageSchema),
-});
-export type ChatInput = z.infer<typeof ChatInputSchema>;
-
-export const ChatOutputSchema = z.object({
-  text: z.string(),
-});
-export type ChatOutput = z.infer<typeof ChatOutputSchema>;
+import {
+  ChatInput,
+  ChatInputSchema,
+  ChatOutput,
+  ChatOutputSchema,
+} from '@/lib/chat-types';
 
 const systemPrompt = `You are a friendly and expert video game assistant named GameFinder.
 Your task is to help users discover new video games based on their preferences.

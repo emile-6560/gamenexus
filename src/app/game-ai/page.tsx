@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { chatAction } from '@/app/actions';
 import { Loader2, Wand2, Bot, Sparkles, ServerCrash, User } from 'lucide-react';
-import type { ChatMessage } from '@/ai/flows/chat';
+import type { ChatMessage } from '@/lib/chat-types';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';

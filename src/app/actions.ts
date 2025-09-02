@@ -6,7 +6,7 @@ import type { AggregateGamePricesOutput } from '@/ai/flows/aggregate-game-prices
 import { findGames } from '@/ai/flows/find-games';
 import type { FindGamesOutput } from '@/ai/flows/find-games';
 import { chat } from '@/ai/flows/chat';
-import type { ChatMessage } from '@/ai/flows/chat';
+import type { ChatMessage } from '@/lib/chat-types';
 import { doc, setDoc, collection, getDocs, orderBy, query } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Game, GameStatus, UserGame } from '@/lib/types';
@@ -27,9 +27,16 @@ export async function findPricesAction(gameName: string): Promise<AggregateGameP
 export async function findGamesAction(query: string): Promise<{ intro: string; games: Game[] }> {
     try {
         const aiResult = await findGames({ query });
+
+        if (!aiResult || !aiResult.games) {
+            return {
+                intro: aiResult?.recommendationText || "Désolé, je n'ai rien trouvé. Essayez une autre recherche !",
+                games: []
+            };
+        }
         
         // If the AI returns a valid response but no games, we still show the intro text.
-        if (!aiResult.games || aiResult.games.length === 0) {
+        if (aiResult.games.length === 0) {
             return { 
                 intro: aiResult.recommendationText || "Je n'ai pas trouvé de jeux correspondant à votre recherche. Essayez d'être plus précis !", 
                 games: [] 
