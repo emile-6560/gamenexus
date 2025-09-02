@@ -5,28 +5,10 @@
  * @fileOverview A flow to aggregate game prices from major online retailers.
  *
  * - aggregateGamePrices - A function that aggregates prices for a given game.
- * - AggregateGamePricesInput - The input type for the aggregateGamePrices function.
- * - AggregateGamePricesOutput - The return type for the aggregateGamePrices function.
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
-
-const AggregateGamePricesInputSchema = z.object({
-  gameName: z.string().describe('Le nom du jeu pour lequel chercher les prix.'),
-});
-export type AggregateGamePricesInput = z.infer<typeof AggregateGamePricesInputSchema>;
-
-const AggregateGamePricesOutputSchema = z.object({
-  prices: z.array(
-    z.object({
-      retailer: z.string().describe('Le nom du détaillant (ex: Amazon, Steam, etc.).'),
-      price: z.number().describe('Le prix du jeu en tant que nombre, sans symbole de devise.'),
-      url: z.string().describe("L'URL de la page du jeu sur le site du détaillant."),
-    })
-  ).describe('Un tableau de prix de différents détaillants.'),
-});
-export type AggregateGamePricesOutput = z.infer<typeof AggregateGamePricesOutputSchema>;
+import { AggregateGamePricesInput, AggregateGamePricesInputSchema, AggregateGamePricesOutput, AggregateGamePricesOutputSchema } from '@/lib/price-aggregator-types';
 
 export async function aggregateGamePrices(input: AggregateGamePricesInput): Promise<AggregateGamePricesOutput> {
   return aggregateGamePricesFlow(input);

@@ -2,9 +2,9 @@
 'use server';
 
 import { aggregateGamePrices } from '@/ai/flows/aggregate-game-prices';
-import type { AggregateGamePricesOutput } from '@/ai/flows/aggregate-game-prices';
+import type { AggregateGamePricesOutput } from '@/lib/price-aggregator-types';
 import { findGames } from '@/ai/flows/find-games';
-import type { FindGamesOutput } from '@/ai/flows/find-games';
+import type { FindGamesOutput } from '@/lib/game-discovery-types';
 import { chat } from '@/ai/flows/chat';
 import type { ChatMessage } from '@/lib/chat-types';
 import { doc, setDoc, collection, getDocs, orderBy, query } from 'firebase/firestore';
