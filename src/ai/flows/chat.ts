@@ -3,15 +3,11 @@
 
 /**
  * @fileOverview A conversational chat flow for finding games.
- *
- * - chat - A function that handles a conversational turn.
  */
 
 import {aiFlash} from '@/ai/genkit';
 import {
-  ChatInput,
   ChatInputSchema,
-  ChatOutput,
   ChatOutputSchema,
 } from '@/lib/chat-types';
 
@@ -23,12 +19,7 @@ When you recommend a game, briefly mention why you are recommending it.
 Do not recommend more than 3 games at a time unless explicitly asked.
 Do not use markdown in your responses.`;
 
-
-export async function chat(input: ChatInput): Promise<ChatOutput> {
-  return chatFlow(input);
-}
-
-const chatFlow = aiFlash.defineFlow(
+export const chatFlow = aiFlash.defineFlow(
   {
     name: 'chatFlow',
     inputSchema: ChatInputSchema,

@@ -1,12 +1,12 @@
 
 'use server';
 
-import { aggregateGamePrices } from '@/ai/flows/aggregate-game-prices';
-import type { AggregateGamePricesOutput } from '@/lib/price-aggregator-types';
-import { findGames } from '@/ai/flows/find-games';
-import type { FindGamesOutput } from '@/lib/game-discovery-types';
-import { chat } from '@/ai/flows/chat';
-import type { ChatMessage } from '@/lib/chat-types';
+import { aggregateGamePricesFlow } from '@/ai/flows/aggregate-game-prices';
+import type { AggregateGamePricesInput, AggregateGamePricesOutput } from '@/lib/price-aggregator-types';
+import { findGamesFlow } from '@/ai/flows/find-games';
+import type { FindGamesInput, FindGamesOutput } from '@/lib/game-discovery-types';
+import { chatFlow } from '@/ai/flows/chat';
+import type { ChatInput, ChatMessage } from '@/lib/chat-types';
 import { doc, setDoc, collection, getDocs, orderBy, query } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Game, GameStatus, UserGame } from '@/lib/types';
@@ -15,7 +15,7 @@ import { getGameDetails, getGames } from '@/lib/igdb-api';
 
 export async function findPricesAction(gameName: string): Promise<AggregateGamePricesOutput> {
   try {
-    const result = await aggregateGamePrices({ gameName });
+    const result = await aggregateGamePricesFlow({ gameName });
     return result;
 
   } catch (error) {
@@ -26,7 +26,7 @@ export async function findPricesAction(gameName: string): Promise<AggregateGameP
 
 export async function findGamesAction(query: string): Promise<{ intro: string; games: Game[] }> {
     try {
-        const aiResult = await findGames({ query });
+        const aiResult = await findGamesFlow({ query });
 
         if (!aiResult || !aiResult.games) {
             return {
@@ -35,7 +35,6 @@ export async function findGamesAction(query: string): Promise<{ intro: string; g
             };
         }
         
-        // If the AI returns a valid response but no games, we still show the intro text.
         if (aiResult.games.length === 0) {
             return { 
                 intro: aiResult.recommendationText || "Je n'ai pas trouvé de jeux correspondant à votre recherche. Essayez d'être plus précis !", 
@@ -45,17 +44,14 @@ export async function findGamesAction(query: string): Promise<{ intro: string; g
 
         const gamePromises = aiResult.games.map(async (recommendedGame) => {
             try {
-                // Search for the exact name provided by the AI
                 const searchResult = await getGames({ search: recommendedGame.name, limit: 1 });
                 if (searchResult.games.length > 0) {
-                    // Return the first game found, enriched with the AI's reason
                     return { ...searchResult.games[0], reason: recommendedGame.reason };
                 }
                 console.warn(`No game found in DB for AI recommendation: "${recommendedGame.name}"`);
                 return null;
             } catch (searchError) {
                 console.error(`Error fetching details for game "${recommendedGame.name}":`, searchError);
-                // Return null if there's an error for an individual game, so Promise.all doesn't fail
                 return null;
             }
         });
@@ -75,7 +71,6 @@ export async function findGamesAction(query: string): Promise<{ intro: string; g
 
     } catch (error) {
         console.error('Error in findGamesAction (AI communication or processing):', error);
-        // This catch block now handles errors from the findGames flow or other unexpected issues.
         throw new Error("Une erreur de communication est survenue avec l'assistant IA. Veuillez réessayer.");
     }
 }
@@ -131,7 +126,7 @@ export async function getUserGames(userId: string): Promise<(Game & { status: Ga
 
 export async function chatAction(history: ChatMessage[]): Promise<string> {
     try {
-        const result = await chat({ history });
+        const result = await chatFlow({ history });
         return result.text;
     } catch (error) {
         console.error("Error in chatAction:", error);

@@ -2,16 +2,10 @@
 'use server';
 /**
  * @fileOverview A flow to find games based on a user's natural language query.
- *
- * - findGames - A function that finds games based on a query.
  */
 
 import {ai} from '@/ai/genkit';
-import { FindGamesInput, FindGamesInputSchema, FindGamesOutput, FindGamesOutputSchema } from '@/lib/game-discovery-types';
-
-export async function findGames(input: FindGamesInput): Promise<FindGamesOutput> {
-  return findGamesFlow(input);
-}
+import { FindGamesInputSchema, FindGamesOutputSchema } from '@/lib/game-discovery-types';
 
 const prompt = ai.definePrompt({
   name: 'findGamesPrompt',
@@ -47,7 +41,7 @@ DO NOT DEVIATE FROM THIS FORMAT. Your response MUST be valid JSON that matches t
 `,
 });
 
-const findGamesFlow = ai.defineFlow(
+export const findGamesFlow = ai.defineFlow(
   {
     name: 'findGamesFlow',
     inputSchema: FindGamesInputSchema,

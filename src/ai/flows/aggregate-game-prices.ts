@@ -3,16 +3,10 @@
 
 /**
  * @fileOverview A flow to aggregate game prices from major online retailers.
- *
- * - aggregateGamePrices - A function that aggregates prices for a given game.
  */
 
 import {ai} from '@/ai/genkit';
-import { AggregateGamePricesInput, AggregateGamePricesInputSchema, AggregateGamePricesOutput, AggregateGamePricesOutputSchema } from '@/lib/price-aggregator-types';
-
-export async function aggregateGamePrices(input: AggregateGamePricesInput): Promise<AggregateGamePricesOutput> {
-  return aggregateGamePricesFlow(input);
-}
+import { AggregateGamePricesInputSchema, AggregateGamePricesOutputSchema } from '@/lib/price-aggregator-types';
 
 const prompt = ai.definePrompt({
   name: 'aggregateGamePricesPrompt',
@@ -28,7 +22,7 @@ Si vous ne trouvez aucun prix, retournez un tableau vide.
 `,
 });
 
-const aggregateGamePricesFlow = ai.defineFlow(
+export const aggregateGamePricesFlow = ai.defineFlow(
   {
     name: 'aggregateGamePricesFlow',
     inputSchema: AggregateGamePricesInputSchema,
