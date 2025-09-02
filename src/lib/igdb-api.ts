@@ -238,13 +238,17 @@ export async function getFranchises({ page = 1, limit = 20, search = '', sortBy 
         return { franchises: [], totalCount: 0 };
     }
 
-    const finalFranchises = franchises.map((franchise: any) => ({
-        id: franchise.id,
-        name: franchise.name,
-        // Find the first game with a cover to use as the franchise cover
-        coverUrl: franchise.games?.find((g: any) => g.cover?.url)?.cover ? formatCoverUrl(franchise.games.find((g: any) => g.cover.url).cover.url) : '/placeholder.jpg',
-        games: franchise.games || [],
-    }));
+    const finalFranchises = franchises.map((franchise: any) => {
+        const gameWithCover = franchise.games?.find((g: any) => g.cover?.url);
+        const coverUrl = gameWithCover ? formatCoverUrl(gameWithCover.cover.url) : '/placeholder.jpg';
+
+        return {
+            id: franchise.id,
+            name: franchise.name,
+            coverUrl: coverUrl,
+            games: franchise.games || [],
+        };
+    });
 
     return { franchises: finalFranchises, totalCount };
 }
