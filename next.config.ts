@@ -33,6 +33,18 @@ const nextConfig: NextConfig = {
         hostname: 'assets-prd.ignimgs.com',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'assets.ignimgs.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'assets1.ignimgs.com',
+        port: '',
+        pathname: '/**',
       }
     ],
   },
