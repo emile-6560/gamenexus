@@ -9,7 +9,10 @@ export async function getNewsFromRss(): Promise<NewsArticle[]> {
   
   try {
     const response = await fetch(rssFeedUrl, {
-      next: { revalidate: 3600 } // Revalidate every hour
+      next: { revalidate: 3600 }, // Revalidate every hour
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      }
     });
 
     if (!response.ok) {
@@ -23,24 +26,23 @@ export async function getNewsFromRss(): Promise<NewsArticle[]> {
     
     return items.map((item: any): NewsArticle => {
       let imageUrl = '/placeholder.jpg';
-      // IGN uses media:content or media:thumbnail for the main image
       const mediaContent = item['media:content'];
-      const mediaThumbnail = item['media:thumbnail'];
-
       if (mediaContent && mediaContent[0] && mediaContent[0].$.url) {
         imageUrl = mediaContent[0].$.url;
-      } else if (mediaThumbnail && mediaThumbnail[0] && mediaThumbnail[0].$.url) {
+      } else {
+        const mediaThumbnail = item['media:thumbnail'];
+        if (mediaThumbnail && mediaThumbnail[0] && mediaThumbnail[0].$.url) {
           imageUrl = mediaThumbnail[0].$.url;
+        }
       }
       
       const cleanCDATA = (str: string) => {
          if (typeof str === 'string') {
-          return str.replace(/^<!\[CDATA\[|\]\]>$/g, '').trim();
+          return str.replace(/<!\[CDATA\[(.*?)\]\]>/gs, '$1').trim();
         }
         return '';
       }
 
-      // Handle guid being a string or an object with _
       const guid = typeof item.guid[0] === 'string' ? item.guid[0] : item.guid[0]._;
 
       return {
