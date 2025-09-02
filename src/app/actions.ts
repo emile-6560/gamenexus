@@ -27,37 +27,31 @@ export async function findGamesAction(query: string): Promise<{ intro: string; g
         const aiResult = await findGames({ query });
         
         if (!aiResult) {
-            // This case should not happen if the IA respects the prompt, but as a safeguard:
             return { intro: "Désolé, l'IA n'a pas pu traiter votre demande. Veuillez réessayer.", games: [] };
         }
         
         if (!aiResult.games || aiResult.games.length === 0) {
-            // This case handles when the IA explicitly returns no games.
             return { intro: aiResult.recommendationText || "L'IA n'a trouvé aucune recommandation pour votre recherche. Essayez d'être plus précis !", games: [] };
         }
 
         const gamePromises = aiResult.games.map(async (recommendedGame) => {
             try {
-                // Search for the game recommended by the AI
                 const searchResult = await getGames({ search: recommendedGame.name, limit: 1 });
                 if (searchResult.games.length > 0) {
-                    // If found, return its details along with the reason from the AI
                     return { ...searchResult.games[0], reason: recommendedGame.reason };
                 }
-                 return null; // Return null if not found
+                 return null;
             } catch (searchError) {
                 console.error(`Error fetching details for game "${recommendedGame.name}":`, searchError);
-                return null; // Ignore games that fail to fetch
+                return null;
             }
         });
 
-        // Wait for all searches to complete and filter out any null results
         const gamesWithDetails = (await Promise.all(gamePromises)).filter((g): g is Game & { reason: string } => g !== null);
         
         const introText = aiResult.recommendationText || "Voici quelques recommandations basées sur votre recherche :";
 
         if (gamesWithDetails.length === 0) {
-             // This case handles when the IA made suggestions, but none were found in our DB.
             return { intro: "L'IA a fait des suggestions, mais nous n'avons pas trouvé de correspondances dans notre base de données. Voici son message : \"" + introText + "\"", games: [] };
         }
         
@@ -65,7 +59,6 @@ export async function findGamesAction(query: string): Promise<{ intro: string; g
 
     } catch (error) {
         console.error('Error in findGamesAction:', error);
-        // This will now catch major errors, like the AI service being down or a prompt validation failure.
         throw new Error("Une erreur de communication est survenue avec l'assistant IA. Veuillez réessayer.");
     }
 }
@@ -79,7 +72,6 @@ export async function updateUserGameStatus(userId: string, gameId: number, statu
       gameName,
       updatedAt: new Date(),
     }, { merge: true });
-    // Revalidate the experiences page to show the new status
     revalidatePath('/my-experiences');
   } catch (error) {
     console.error('Error updating game status:', error);

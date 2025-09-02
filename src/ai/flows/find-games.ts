@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview A flow to find games based on a user's natural language query.
@@ -51,7 +52,7 @@ Example Output:
     { name: "Elden Ring", reason: "Offers unparalleled exploration and challenging combat in a dark fantasy setting."}
 ]
 
-IMPORTANT: You MUST ALWAYS return both a recommendationText and a list of games. If you cannot find ANY relevant games for the query, return a friendly message in recommendationText explaining that you couldn't find anything, and return an EMPTY array for the games field. DO NOT return null or undefined.
+IMPORTANT: You MUST ALWAYS return both a recommendationText and a list of games. If you cannot find ANY relevant games for the query, return a friendly message in recommendationText explaining that you couldn't find anything, and return an EMPTY array for the games field. DO NOT return null or undefined for any field.
 `,
 });
 
