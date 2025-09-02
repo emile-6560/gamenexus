@@ -16,13 +16,13 @@ const FindGamesInputSchema = z.object({
 export type FindGamesInput = z.infer<typeof FindGamesInputSchema>;
 
 const FindGamesOutputSchema = z.object({
-    recommendationText: z.string().optional().describe("A friendly and helpful text that introduces the recommended games."),
+    recommendationText: z.string().describe("A friendly and helpful text that introduces the recommended games."),
     games: z.array(
         z.object({
             name: z.string().describe("The exact title of the recommended game."),
             reason: z.string().describe("A short, compelling reason why this specific game is recommended based on the user's query.")
         })
-    ).optional().describe("A list of 3 to 5 recommended games.")
+    ).describe("A list of 3 to 5 recommended games.")
 });
 export type FindGamesOutput = z.infer<typeof FindGamesOutputSchema>;
 
@@ -51,7 +51,7 @@ Example Output:
     { name: "Elden Ring", reason: "Offers unparalleled exploration and challenging combat in a dark fantasy setting."}
 ]
 
-If you cannot find ANY relevant games for the query, you can return an empty or null response.
+IMPORTANT: You MUST ALWAYS return both a recommendationText and a list of games. If you cannot find ANY relevant games for the query, return a friendly message in recommendationText explaining that you couldn't find anything, and return an EMPTY array for the games field. DO NOT return null or undefined.
 `,
 });
 

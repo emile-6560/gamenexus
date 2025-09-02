@@ -26,8 +26,14 @@ export async function findGamesAction(query: string): Promise<{ intro: string; g
     try {
         const aiResult = await findGames({ query });
         
-        if (!aiResult || !aiResult.games || aiResult.games.length === 0) {
-            return { intro: "Désolé, l'IA n'a trouvé aucune recommandation pour votre recherche. Essayez d'être plus précis !", games: [] };
+        if (!aiResult) {
+            // This case should not happen if the IA respects the prompt, but as a safeguard:
+            return { intro: "Désolé, l'IA n'a pas pu traiter votre demande. Veuillez réessayer.", games: [] };
+        }
+        
+        if (!aiResult.games || aiResult.games.length === 0) {
+            // This case handles when the IA explicitly returns no games.
+            return { intro: aiResult.recommendationText || "L'IA n'a trouvé aucune recommandation pour votre recherche. Essayez d'être plus précis !", games: [] };
         }
 
         const gamePromises = aiResult.games.map(async (recommendedGame) => {
@@ -51,15 +57,16 @@ export async function findGamesAction(query: string): Promise<{ intro: string; g
         const introText = aiResult.recommendationText || "Voici quelques recommandations basées sur votre recherche :";
 
         if (gamesWithDetails.length === 0) {
-            return { intro: "L'IA a fait des suggestions, mais nous n'avons pas trouvé de correspondances exactes dans notre base de données. Voici ce que l'IA a dit : " + introText, games: [] };
+             // This case handles when the IA made suggestions, but none were found in our DB.
+            return { intro: "L'IA a fait des suggestions, mais nous n'avons pas trouvé de correspondances dans notre base de données. Voici son message : \"" + introText + "\"", games: [] };
         }
         
         return { intro: introText, games: gamesWithDetails };
 
     } catch (error) {
         console.error('Error in findGamesAction:', error);
-        // This will now only catch major errors, like the AI service being down.
-        throw new Error('Une erreur est survenue lors de la communication avec le service IA.');
+        // This will now catch major errors, like the AI service being down or a prompt validation failure.
+        throw new Error("Une erreur de communication est survenue avec l'assistant IA. Veuillez réessayer.");
     }
 }
 

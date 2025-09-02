@@ -7,13 +7,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { findGamesAction } from '@/app/actions';
-import { Loader2, Wand2, Bot, Sparkles } from 'lucide-react';
+import { Loader2, Wand2, Bot, Sparkles, ServerCrash } from 'lucide-react';
 import type { Game } from '@/lib/types';
 import { GameCard, GameCardSkeleton } from '@/components/game-card';
 
 export default function GameAiPage() {
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{ intro: string; games: (Game & {reason?: string})[] } | null>(null);
   const { toast } = useToast();
 
@@ -25,10 +26,12 @@ export default function GameAiPage() {
     }
     setLoading(true);
     setResult(null);
+    setError(null);
     try {
       const response = await findGamesAction(query);
       setResult(response);
     } catch (error: any) {
+      setError(error.message || "Une erreur inattendue est survenue.");
       toast({ variant: 'destructive', title: 'Erreur', description: error.message });
     } finally {
       setLoading(false);
@@ -39,7 +42,11 @@ export default function GameAiPage() {
     if (loading) {
       return (
         <div className="mt-8">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mt-6">
+             <div className="flex flex-col items-center justify-center text-center">
+                <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
+                <p className="text-lg text-muted-foreground">L'IA réfléchit à votre prochaine aventure...</p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mt-6 invisible">
                 {Array.from({ length: 5 }).map((_, i) => (
                     <GameCardSkeleton key={i} />
                 ))}
@@ -48,13 +55,23 @@ export default function GameAiPage() {
       )
     }
 
+    if (error) {
+      return (
+         <div className="mt-8 text-center py-10 px-4 bg-destructive/10 text-destructive rounded-lg">
+            <ServerCrash className="mx-auto h-12 w-12 mb-4" />
+            <h3 className="text-xl font-semibold mb-2">Oups, une erreur est survenue</h3>
+            <p>{error}</p>
+        </div>
+      )
+    }
+
     if (!result) return null;
 
     return (
       <div className="mt-8 animate-in fade-in-50 duration-500">
-        <div className="text-center mb-6">
+        <div className="text-center mb-6 border-b pb-6">
             <Sparkles className="mx-auto h-8 w-8 text-primary mb-2" />
-            <p className="text-xl text-muted-foreground">{result.intro}</p>
+            <p className="text-xl text-muted-foreground italic">"{result.intro}"</p>
         </div>
         
         {result.games.length > 0 ? (
@@ -67,8 +84,8 @@ export default function GameAiPage() {
                 ))}
             </div>
         ) : (
-            <div className="text-center py-10">
-                <p className="text-lg font-semibold">Aucun jeu trouvé pour votre recherche.</p>
+             <div className="text-center py-10">
+                <p className="text-lg font-semibold">Aucun jeu correspondant trouvé dans notre base de données.</p>
             </div>
         )}
       </div>
