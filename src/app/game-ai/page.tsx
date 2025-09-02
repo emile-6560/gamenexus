@@ -6,28 +6,27 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { generateGameConceptAction } from '@/app/actions';
-import { Loader2, Wand2, Gamepad2, Feather, FileText, Bot } from 'lucide-react';
-import type { GenerateGameConceptOutput } from '@/ai/flows/generate-game-concept';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
+import { findGamesAction } from '@/app/actions';
+import { Loader2, Wand2, Bot, Sparkles } from 'lucide-react';
+import type { Game } from '@/lib/types';
+import { GameCard, GameCardSkeleton } from '@/components/game-card';
 
 export default function GameAiPage() {
-  const [prompt, setPrompt] = useState('');
+  const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<GenerateGameConceptOutput | null>(null);
+  const [result, setResult] = useState<{ intro: string; games: (Game & {reason?: string})[] } | null>(null);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!prompt.trim()) {
-      toast({ variant: 'destructive', title: 'Erreur', description: 'Veuillez entrer une idée de jeu.' });
+    if (!query.trim()) {
+      toast({ variant: 'destructive', title: 'Erreur', description: 'Veuillez décrire ce que vous recherchez.' });
       return;
     }
     setLoading(true);
     setResult(null);
     try {
-      const response = await generateGameConceptAction(prompt);
+      const response = await findGamesAction(query);
       setResult(response);
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Erreur', description: error.message });
@@ -39,90 +38,77 @@ export default function GameAiPage() {
   const ResultDisplay = () => {
     if (loading) {
       return (
-        <Card className="mt-8">
-            <CardHeader>
-                <Skeleton className="h-8 w-3/4" />
-                <Skeleton className="h-5 w-1/4" />
-            </CardHeader>
-            <CardContent className="space-y-4">
-                <div className="space-y-2">
-                    <Skeleton className="h-6 w-32" />
-                    <Skeleton className="h-5 w-full" />
-                    <Skeleton className="h-5 w-full" />
-                    <Skeleton className="h-5 w-2/3" />
-                </div>
-                 <div className="space-y-2">
-                    <Skeleton className="h-6 w-48" />
-                    <Skeleton className="h-5 w-full" />
-                    <Skeleton className="h-5 w-full" />
-                    <Skeleton className="h-5 w-4/5" />
-                </div>
-            </CardContent>
-        </Card>
+        <div className="mt-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mt-6">
+                {Array.from({ length: 5 }).map((_, i) => (
+                    <GameCardSkeleton key={i} />
+                ))}
+            </div>
+        </div>
       )
     }
 
     if (!result) return null;
 
     return (
-      <Card className="mt-8 animate-in fade-in-50 duration-500">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-3xl">
-            <Feather className="w-8 h-8 text-primary" /> {result.title}
-          </CardTitle>
-          <CardDescription>
-            <Badge variant="secondary" className="text-md">{result.genre}</Badge>
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div>
-            <h3 className="font-semibold text-lg flex items-center gap-2 mb-2"><FileText className="w-5 h-5" /> Description</h3>
-            <p className="text-muted-foreground">{result.description}</p>
-          </div>
-          <div>
-            <h3 className="font-semibold text-lg flex items-center gap-2 mb-2"><Gamepad2 className="w-5 h-5" /> Mécaniques de jeu</h3>
-            <ul className="list-disc pl-5 space-y-2 text-muted-foreground">
-              {result.gameplayMechanics.map((mechanic, index) => (
-                <li key={index}>{mechanic}</li>
-              ))}
-            </ul>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="mt-8 animate-in fade-in-50 duration-500">
+        <div className="text-center mb-6">
+            <Sparkles className="mx-auto h-8 w-8 text-primary mb-2" />
+            <p className="text-xl text-muted-foreground">{result.intro}</p>
+        </div>
+        
+        {result.games.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                {result.games.map(game => (
+                    <div key={game.id} className="flex flex-col gap-2">
+                        <GameCard game={game} />
+                        {game.reason && <p className="text-sm text-center text-muted-foreground p-2 bg-muted/50 rounded-md">"{game.reason}"</p>}
+                    </div>
+                ))}
+            </div>
+        ) : (
+            <div className="text-center py-10">
+                <p className="text-lg font-semibold">Aucun jeu trouvé pour votre recherche.</p>
+            </div>
+        )}
+      </div>
     )
   }
 
   return (
     <main className="container mx-auto px-4 sm:px-6 md:px-8 py-8">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
             <div className="inline-block bg-primary/10 p-4 rounded-full mb-4">
                 <Bot className="w-12 h-12 text-primary" />
             </div>
-            <h1 className="text-4xl font-extrabold tracking-tighter">Générateur d'Idées de Jeux</h1>
+            <h1 className="text-4xl font-extrabold tracking-tighter">Votre Assistant de Jeu IA</h1>
             <p className="text-lg text-muted-foreground mt-2">
-            Vous avez une idée de génie ? Laissez notre IA la transformer en un concept de jeu complet !
+            Décrivez le jeu de vos rêves, et laissez notre IA vous trouver des pépites !
             </p>
             <p className="text-sm text-muted-foreground mt-1">Propulsé par Gemini 2.5 Flash</p>
         </div>
 
         <Card>
             <CardHeader>
-                <CardTitle>Votre Idée</CardTitle>
-                <CardDescription>Décrivez votre idée de jeu dans la zone de texte ci-dessous. Soyez aussi bref ou détaillé que vous le souhaitez.</CardDescription>
+                <CardTitle>Que recherchez-vous ?</CardTitle>
+                <CardDescription>
+                  Soyez aussi précis que possible. Ex: "un RPG en monde ouvert avec une bonne histoire comme The Witcher", 
+                  "un jeu de course fun pour jouer avec des amis", "les meilleurs jeux de stratégie de 2023"...
+                </CardDescription>
             </CardHeader>
             <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <Textarea
                         placeholder="Ex: Un jeu de survie post-apocalyptique où les animaux ont muté et parlent..."
-                        value={prompt}
-                        onChange={(e) => setPrompt(e.target.value)}
-                        rows={4}
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        rows={3}
                         className="text-lg"
                     />
                     <Button type="submit" disabled={loading} size="lg" className="w-full">
                         {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
-                        Générer le concept
+                        Trouver mon prochain jeu
                     </Button>
                 </form>
             </CardContent>
