@@ -2,7 +2,7 @@
 
 'use server';
 
-import type { Game, Platform, Franchise, NewsArticle } from './types';
+import type { Game, Platform, Franchise } from './types';
 
 const IGDB_API_URL = 'https://api.igdb.com/v4';
 const CLIENT_ID = process.env.IGDB_CLIENT_ID;
@@ -15,7 +15,6 @@ async function fetchFromIGDB(endpoint: string, query: string) {
     if (endpoint === 'games') return [];
     if (endpoint === 'platforms') return [];
     if (endpoint === 'franchises') return [];
-    if (endpoint === 'pulses') return [];
     return null;
   }
   
@@ -48,10 +47,6 @@ function formatCoverUrl(url?: string) {
 
 function formatScreenshotUrl(url?: string) {
     return url ? `https:${url.replace('t_thumb', 't_screenshot_huge')}` : '/placeholder.jpg';
-}
-
-function formatPulseImageUrl(url?: string) {
-  return url ? `https:${url.replace('t_thumb', 't_logo_med')}` : 'https://picsum.photos/400/225';
 }
 
 function mapGame(game: any): Game {
@@ -288,33 +283,4 @@ export async function getFranchiseDetails(id: number): Promise<Franchise | null>
         coverUrl: sortedGames.length > 0 && sortedGames[0].cover ? formatCoverUrl(sortedGames[0].cover.url) : '/placeholder.jpg',
         games: sortedGames.map(mapGame),
     };
-}
-
-
-export async function getNews(): Promise<NewsArticle[]> {
-    const query = `
-        fields 
-            title, 
-            summary, 
-            published_at,
-            url,
-            image.url;
-        where summary != null & image != null;
-        sort published_at desc;
-        limit 30;
-    `;
-    const pulses = await fetchFromIGDB('pulses', query);
-
-    if (!pulses) {
-        return [];
-    }
-
-    return pulses.map((pulse: any) => ({
-        id: pulse.id,
-        title: pulse.title,
-        summary: pulse.summary,
-        url: pulse.url,
-        imageUrl: formatPulseImageUrl(pulse.image.url),
-        publishedAt: pulse.published_at,
-    }));
 }
