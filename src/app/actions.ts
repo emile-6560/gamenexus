@@ -30,14 +30,17 @@ export async function findGamesAction(query: string): Promise<{ intro: string; g
             return { intro: "Désolé, je n'ai trouvé aucun jeu correspondant à votre recherche. Essayez d'être plus précis !", games: [] };
         }
 
-        // For each recommended game name, fetch the full game details from IGDB
         const gamePromises = aiResult.games.map(async (recommendedGame) => {
-            const searchResult = await getGames({ search: recommendedGame.name, limit: 1 });
-            if (searchResult.games.length > 0) {
-                 // Return the game with the reason from the AI
-                return { ...searchResult.games[0], reason: recommendedGame.reason };
+            try {
+                const searchResult = await getGames({ search: recommendedGame.name, limit: 1 });
+                if (searchResult.games.length > 0) {
+                    return { ...searchResult.games[0], reason: recommendedGame.reason };
+                }
+                 return null;
+            } catch (searchError) {
+                console.error(`Error fetching details for game "${recommendedGame.name}":`, searchError);
+                return null; // Ignore games that fail to fetch
             }
-            return null;
         });
 
         const gamesWithDetails = (await Promise.all(gamePromises)).filter((g): g is Game & { reason: string } => g !== null);
