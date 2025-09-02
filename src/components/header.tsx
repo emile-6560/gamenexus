@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Gamepad } from 'lucide-react';
+import { Gamepad, Rss } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/auth-context';
@@ -16,6 +16,7 @@ export function Header() {
   const navItems = [
     { href: '/', label: 'Jeux' },
     { href: '/franchises', label: 'Franchises' },
+    { href: '/news', label: 'Actualités' },
   ];
 
   return (

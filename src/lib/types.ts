@@ -66,3 +66,13 @@ export type Franchise = {
   coverUrl: string;
   games: Game[];
 }
+
+export type NewsArticle = {
+  title: string;
+  link: string;
+  description: string;
+  pubDate: string;
+  guid: string;
+  imageUrl: string;
+  creator: string;
+};
