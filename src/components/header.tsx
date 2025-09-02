@@ -16,6 +16,7 @@ export function Header() {
   const navItems = [
     { href: '/', label: 'Jeux' },
     { href: '/franchises', label: 'Franchises' },
+    { href: '/studios', label: 'Studios' },
     { href: '/news', label: 'Actualités' },
   ];
 

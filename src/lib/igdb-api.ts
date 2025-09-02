@@ -2,7 +2,7 @@
 
 'use server';
 
-import type { Game, Platform, Franchise } from './types';
+import type { Game, Platform, Franchise, Studio } from './types';
 
 const IGDB_API_URL = 'https://api.igdb.com/v4';
 const CLIENT_ID = process.env.IGDB_CLIENT_ID;
@@ -15,6 +15,7 @@ async function fetchFromIGDB(endpoint: string, query: string) {
     if (endpoint === 'games') return [];
     if (endpoint === 'platforms') return [];
     if (endpoint === 'franchises') return [];
+    if (endpoint === 'companies') return [];
     return null;
   }
   
@@ -47,6 +48,10 @@ function formatCoverUrl(url?: string) {
 
 function formatScreenshotUrl(url?: string) {
     return url ? `https:${url.replace('t_thumb', 't_screenshot_huge')}` : '/placeholder.jpg';
+}
+
+function formatLogoUrl(url?: string) {
+    return url ? `https:${url.replace('t_thumb', 't_logo_med')}` : '/placeholder.jpg';
 }
 
 function mapGame(game: any): Game {
@@ -280,4 +285,49 @@ export async function getFranchiseDetails(id: number): Promise<Franchise | null>
         coverUrl: sortedGames.length > 0 && sortedGames[0].cover ? formatCoverUrl(sortedGames[0].cover.url) : '/placeholder.jpg',
         games: sortedGames.map(mapGame),
     };
+}
+
+type GetStudiosOptions = {
+    search?: string;
+    page?: number;
+    limit?: number;
+    sortBy?: string;
+}
+
+export async function getStudios({ page = 1, limit = 20, search = '', sortBy = 'name asc' }: GetStudiosOptions = {}): Promise<{ studios: Studio[], totalCount: number }> {
+    const offset = (page - 1) * limit;
+
+    let whereClauses = ['developed != null', 'logo != null'];
+
+    if (search) {
+        whereClauses.push(`name ~ *"${search}"*`);
+    }
+    
+    const whereString = whereClauses.join(' & ');
+
+    const countQuery = `where ${whereString};`;
+    const countResult = await fetchFromIGDB('companies/count', countQuery);
+    const totalCount = countResult?.count || 0;
+
+    const studiosQuery = `
+        fields name, logo.url, developed.id;
+        where ${whereString};
+        sort ${sortBy};
+        limit ${limit};
+        offset ${offset};
+    `;
+    const studios = await fetchFromIGDB('companies', studiosQuery);
+
+    if (!studios) {
+        return { studios: [], totalCount: 0 };
+    }
+    
+    const finalStudios = studios.map((studio: any) => ({
+        id: studio.id,
+        name: studio.name,
+        logoUrl: formatLogoUrl(studio.logo?.url),
+        developed: studio.developed || [],
+    }));
+
+    return { studios: finalStudios, totalCount };
 }

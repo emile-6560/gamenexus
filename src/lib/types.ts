@@ -67,6 +67,13 @@ export type Franchise = {
   games: Game[];
 }
 
+export type Studio = {
+    id: number;
+    name: string;
+    logoUrl: string;
+    developed: Game[];
+}
+
 export type NewsArticle = {
   title: string;
   link: string;
