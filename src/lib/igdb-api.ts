@@ -90,14 +90,11 @@ type GetGamesOptions = {
 
 export async function getGames({ search = '', platform, page = 1, limit = 100, sortBy = 'total_rating_count desc' }: GetGamesOptions = {}): Promise<{ games: Game[], totalCount: number }> {
   
-  const targetPlatformIds = [6, 48, 49, 130, 167, 169]; // PC, PS4, Xbox One, Switch, PS5, Xbox Series X/S
-
   let whereClauses = [
     'total_rating > 0',
     'total_rating_count > 0',
     'version_parent = null',
     'parent_game = null',
-    `platforms = (${targetPlatformIds.join(',')})`,
     'first_release_date != null',
   ];
 
