@@ -16,13 +16,13 @@ const FindGamesInputSchema = z.object({
 export type FindGamesInput = z.infer<typeof FindGamesInputSchema>;
 
 const FindGamesOutputSchema = z.object({
-    recommendationText: z.string().describe("A friendly and helpful text that introduces the recommended games."),
+    recommendationText: z.string().optional().describe("A friendly and helpful text that introduces the recommended games."),
     games: z.array(
         z.object({
             name: z.string().describe("The exact title of the recommended game."),
             reason: z.string().describe("A short, compelling reason why this specific game is recommended based on the user's query.")
         })
-    ).describe("A list of 3 to 5 recommended games.")
+    ).optional().describe("A list of 3 to 5 recommended games.")
 });
 export type FindGamesOutput = z.infer<typeof FindGamesOutputSchema>;
 
@@ -50,6 +50,8 @@ Example Output:
     { name: "The Witcher 3: Wild Hunt", reason: "Features a massive, living world and one of the most celebrated stories in gaming."},
     { name: "Elden Ring", reason: "Offers unparalleled exploration and challenging combat in a dark fantasy setting."}
 ]
+
+If you cannot find ANY relevant games for the query, you can return an empty or null response.
 `,
 });
 

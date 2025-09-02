@@ -26,7 +26,7 @@ export async function findGamesAction(query: string): Promise<{ intro: string; g
     try {
         const aiResult = await findGames({ query });
         
-        if (!aiResult || aiResult.games.length === 0) {
+        if (!aiResult || !aiResult.games || aiResult.games.length === 0) {
             return { intro: "Désolé, l'IA n'a trouvé aucune recommandation pour votre recherche. Essayez d'être plus précis !", games: [] };
         }
 
@@ -48,14 +48,13 @@ export async function findGamesAction(query: string): Promise<{ intro: string; g
         // Wait for all searches to complete and filter out any null results
         const gamesWithDetails = (await Promise.all(gamePromises)).filter((g): g is Game & { reason: string } => g !== null);
         
-        // If after all searches, no games were found, return the intro text with an empty array
-        // This prevents the generic error and gives a better user experience.
+        const introText = aiResult.recommendationText || "Voici quelques recommandations basées sur votre recherche :";
+
         if (gamesWithDetails.length === 0) {
-            return { intro: "L'IA a fait des suggestions, mais nous n'avons pas trouvé de correspondances exactes dans notre base de données. Voici ce que l'IA a dit : " + aiResult.recommendationText, games: [] };
+            return { intro: "L'IA a fait des suggestions, mais nous n'avons pas trouvé de correspondances exactes dans notre base de données. Voici ce que l'IA a dit : " + introText, games: [] };
         }
         
-        // If we have games, return them with the original intro text.
-        return { intro: aiResult.recommendationText, games: gamesWithDetails };
+        return { intro: introText, games: gamesWithDetails };
 
     } catch (error) {
         console.error('Error in findGamesAction:', error);
