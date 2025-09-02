@@ -1,3 +1,4 @@
+
 'use server';
 
 import { parseStringPromise } from 'xml2js';
@@ -22,9 +23,14 @@ export async function getNewsFromRss(): Promise<NewsArticle[]> {
     
     return items.map((item: any): NewsArticle => {
       let imageUrl = '/placeholder.jpg';
-      // IGN uses media:content for the main image
-      if (item['media:content'] && item['media:content'][0] && item['media:content'][0].$.url) {
-        imageUrl = item['media:content'][0].$.url;
+      // IGN uses media:content or media:thumbnail for the main image
+      const mediaContent = item['media:content'];
+      const mediaThumbnail = item['media:thumbnail'];
+
+      if (mediaContent && mediaContent[0] && mediaContent[0].$.url) {
+        imageUrl = mediaContent[0].$.url;
+      } else if (mediaThumbnail && mediaThumbnail[0] && mediaThumbnail[0].$.url) {
+          imageUrl = mediaThumbnail[0].$.url;
       }
       
       const cleanCDATA = (str: string) => {
@@ -34,12 +40,15 @@ export async function getNewsFromRss(): Promise<NewsArticle[]> {
         return '';
       }
 
+      // Handle guid being a string or an object with _
+      const guid = typeof item.guid[0] === 'string' ? item.guid[0] : item.guid[0]._;
+
       return {
         title: cleanCDATA(item.title[0]),
         link: item.link[0],
         description: cleanCDATA(item.description[0]),
         pubDate: item.pubDate[0],
-        guid: item.guid[0]._,
+        guid: guid,
         imageUrl: imageUrl,
         creator: item['dc:creator']?.[0] ?? 'IGN Staff',
       };
