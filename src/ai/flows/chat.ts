@@ -38,14 +38,8 @@ const chatFlow = ai.defineFlow(
     const { history } = input;
 
     const llmResponse = await ai.generate({
-      prompt: {
-        role: 'user',
-        content: history[history.length - 1].content,
-      },
-      history: [
-          { role: 'model', content: systemPrompt },
-          ...history.slice(0, -1)
-      ],
+      system: systemPrompt,
+      history: history,
       config: {
         // You can adjust temperature for more creative or factual responses
         temperature: 0.7,
