@@ -5,6 +5,8 @@ import { aggregateGamePrices } from '@/ai/flows/aggregate-game-prices';
 import type { AggregateGamePricesOutput } from '@/ai/flows/aggregate-game-prices';
 import { findGames } from '@/ai/flows/find-games';
 import type { FindGamesOutput } from '@/ai/flows/find-games';
+import { chat } from '@/ai/flows/chat';
+import type { ChatMessage } from '@/ai/flows/chat';
 import { doc, setDoc, collection, getDocs, orderBy, query } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Game, GameStatus, UserGame } from '@/lib/types';
@@ -55,6 +57,13 @@ export async function findGamesAction(query: string): Promise<{ intro: string; g
         
         const introText = aiResult.recommendationText || "Voici quelques recommandations basées sur votre recherche :";
         
+        if (gamesWithDetails.length === 0) {
+             return { 
+                intro: aiResult.recommendationText || "Je n'ai pas trouvé de jeux correspondants dans notre base de données pour les suggestions de l'IA. Essayez une autre recherche !", 
+                games: [] 
+            };
+        }
+
         return { intro: introText, games: gamesWithDetails };
 
     } catch (error) {
@@ -110,5 +119,15 @@ export async function getUserGames(userId: string): Promise<(Game & { status: Ga
     } catch (error) {
         console.error('Error fetching user games:', error);
         throw new Error('Failed to fetch user games.');
+    }
+}
+
+export async function chatAction(history: ChatMessage[]): Promise<string> {
+    try {
+        const result = await chat({ history });
+        return result.text;
+    } catch (error) {
+        console.error("Error in chatAction:", error);
+        throw new Error("Une erreur de communication est survenue avec l'assistant IA. Veuillez réessayer.");
     }
 }
