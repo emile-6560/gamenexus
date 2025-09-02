@@ -7,7 +7,7 @@
  * - chat - A function that handles a conversational turn.
  */
 
-import {ai} from '@/ai/genkit';
+import {aiFlash} from '@/ai/genkit';
 import {
   ChatInput,
   ChatInputSchema,
@@ -28,7 +28,7 @@ export async function chat(input: ChatInput): Promise<ChatOutput> {
   return chatFlow(input);
 }
 
-const chatFlow = ai.defineFlow(
+const chatFlow = aiFlash.defineFlow(
   {
     name: 'chatFlow',
     inputSchema: ChatInputSchema,
@@ -37,8 +37,8 @@ const chatFlow = ai.defineFlow(
   async (input) => {
     const { history } = input;
 
-    const llmResponse = await ai.generate({
-      model: 'googleai/gemini-2.5-pro',
+    const llmResponse = await aiFlash.generate({
+      model: 'googleai/gemini-2.5-flash',
       system: systemPrompt,
       history: history,
       config: {

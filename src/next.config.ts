@@ -62,6 +62,7 @@ const nextConfig: NextConfig = {
     IGDB_CLIENT_ID: process.env.IGDB_CLIENT_ID,
     IGDB_ACCESS_TOKEN: process.env.IGDB_ACCESS_TOKEN,
     GEMINI_API_KEY: process.env.GEMINI_API_KEY,
+    GEMINI_API_KEY_FLASH: process.env.GEMINI_API_KEY_FLASH,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
   }
 };
