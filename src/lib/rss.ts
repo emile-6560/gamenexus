@@ -27,11 +27,9 @@ export async function getNewsFromRss(): Promise<NewsArticle[]> {
         imageUrl = item['media:content'][0].$.url;
       }
       
-      // Simple function to clean CDATA wrappers if they exist
       const cleanCDATA = (str: string) => {
          if (typeof str === 'string') {
-          // A more robust way to remove CDATA
-          return str.replace('<![CDATA[', '').replace('', '').trim();
+          return str.replace(/^<!\[CDATA\[|\]\]>$/g, '').trim();
         }
         return '';
       }
@@ -51,4 +49,4 @@ export async function getNewsFromRss(): Promise<NewsArticle[]> {
     console.error('Error fetching or parsing RSS feed:', error);
     return [];
   }
-}]]>
+}
