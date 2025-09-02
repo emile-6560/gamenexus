@@ -22,18 +22,28 @@ export async function getNewsFromRss(): Promise<NewsArticle[]> {
     
     return items.map((item: any): NewsArticle => {
       let imageUrl = '/placeholder.jpg';
+      // IGN uses media:content for the main image
       if (item['media:content'] && item['media:content'][0] && item['media:content'][0].$.url) {
         imageUrl = item['media:content'][0].$.url;
       }
+      
+      // Simple function to clean CDATA wrappers if they exist
+      const cleanCDATA = (str: string) => {
+         if (typeof str === 'string') {
+          // A more robust way to remove CDATA
+          return str.replace('<![CDATA[', '').replace('', '').trim();
+        }
+        return '';
+      }
 
       return {
-        title: item.title[0].replace('<![CDATA[', '').replace('', '').trim(),
+        title: cleanCDATA(item.title[0]),
         link: item.link[0],
-        description: item.description[0].replace('', '').replace('', '').trim(),
+        description: cleanCDATA(item.description[0]),
         pubDate: item.pubDate[0],
         guid: item.guid[0]._,
         imageUrl: imageUrl,
-        creator: item['dc:creator'][0],
+        creator: item['dc:creator']?.[0] ?? 'IGN Staff',
       };
     });
 
