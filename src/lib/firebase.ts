@@ -1,3 +1,4 @@
+
 // Import the functions you need from the SDKs you need
 import { initializeApp, getApps, getApp, FirebaseOptions, FirebaseApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
@@ -15,28 +16,9 @@ const firebaseConfig: FirebaseOptions = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Function to check if all config keys are present
-const isConfigComplete = (config: FirebaseOptions) => {
-  return Object.values(config).every(value => !!value);
-}
-
 // Initialize Firebase
-let app: FirebaseApp | undefined;
-let auth;
-let db: Firestore | undefined;
-
-if (isConfigComplete(firebaseConfig)) {
-  try {
-    app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-    auth = getAuth(app);
-    db = getFirestore(app);
-  } catch (error) {
-    console.error("Firebase initialization error:", error);
-    // If initialization fails, app will be undefined and services will not be exported.
-  }
-} else {
-  console.error("Firebase config is incomplete. Please check your .env file.");
-}
-
+const app: FirebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db: Firestore = getFirestore(app);
 
 export { app, auth, db };
