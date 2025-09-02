@@ -1,7 +1,6 @@
 import {genkit} from 'genkit';
-import {openai} from 'genkit/plugins/openai';
+import {googleAI} from '@genkit-ai/googleai';
 
 export const ai = genkit({
-  plugins: [openai({apiKey: process.env.OPENAI_API_KEY})],
-  model: 'openai/gpt-4o-mini',
+  plugins: [googleAI({apiKey: process.env.GEMINI_API_KEY})],
 });
