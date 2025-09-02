@@ -8,6 +8,9 @@ import { getFranchises } from '@/lib/igdb-api';
 import type { Franchise } from '@/lib/types';
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { useDebounce } from '@/hooks/use-debounce';
+import { Search } from 'lucide-react';
 
 export default function FranchisesPage() {
   const [franchises, setFranchises] = useState<Franchise[]>([]);
@@ -15,7 +18,10 @@ export default function FranchisesPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [totalItems, setTotalItems] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState('name asc');
   const [isPending, startTransition] = useTransition();
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
   const loadFranchises = useCallback(() => {
     setIsLoading(true);
@@ -23,12 +29,14 @@ export default function FranchisesPage() {
       const { franchises: newFranchises, totalCount } = await getFranchises({
         page: currentPage,
         limit: itemsPerPage,
+        search: debouncedSearchQuery,
+        sortBy: sortBy,
       });
       setFranchises(newFranchises);
       setTotalItems(totalCount);
       setIsLoading(false);
     });
-  }, [currentPage, itemsPerPage]);
+  }, [currentPage, itemsPerPage, debouncedSearchQuery, sortBy]);
 
   useEffect(() => {
     loadFranchises();
@@ -36,7 +44,7 @@ export default function FranchisesPage() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [itemsPerPage]);
+  }, [itemsPerPage, debouncedSearchQuery, sortBy]);
 
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
@@ -105,6 +113,31 @@ export default function FranchisesPage() {
           <p className="text-lg text-muted-foreground mt-2">Découvrez les plus grandes sagas du jeu vidéo.</p>
         </div>
         
+        <div className="mb-8 flex flex-col sm:flex-row gap-4 items-end">
+            <div className="relative flex-1 w-full">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                    id="search-franchise"
+                    type="search"
+                    placeholder="Rechercher une franchise..."
+                    className="pl-10 h-12 text-lg"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                />
+            </div>
+            <div className="w-full sm:w-[240px]">
+                <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger id="sort-by-select" className="w-full h-12 text-lg">
+                    <SelectValue placeholder="Trier par" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="name asc">Nom (A-Z)</SelectItem>
+                    <SelectItem value="name desc">Nom (Z-A)</SelectItem>
+                </SelectContent>
+                </Select>
+            </div>
+        </div>
+
         {isLoading && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
             {Array.from({ length: itemsPerPage }).map((_, i) => (

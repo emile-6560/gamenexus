@@ -198,44 +198,55 @@ export async function getPlatforms(): Promise<Platform[]> {
     return Array.from(platformMap.values());
 }
 
-export async function getFranchises({ page = 1, limit = 20 }): Promise<{ franchises: Franchise[], totalCount: number }> {
+type GetFranchisesOptions = {
+    search?: string;
+    page?: number;
+    limit?: number;
+    sortBy?: string;
+}
+
+export async function getFranchises({ page = 1, limit = 20, search = '', sortBy = 'name asc' }: GetFranchisesOptions = {}): Promise<{ franchises: Franchise[], totalCount: number }> {
     const offset = (page - 1) * limit;
 
-    // The API does not allow sorting by popularity directly or complex where clauses.
-    // Workaround: Fetch a large set of franchises, sort them manually, and then paginate.
-    // Fetch 500 franchises (API max limit per request) and let the user paginate through them.
-    const allFranchisesQuery = `
+    let whereClauses = ['games > 0']; // Basic filter to get franchises with at least one game.
+
+    if (search) {
+        whereClauses.push(`name ~ *"${search}"*`);
+    }
+
+    const whereString = whereClauses.join(' & ');
+
+    // Fetch total count based on the search
+    const countQuery = `where ${whereString};`;
+    const countResult = await fetchFromIGDB('franchises/count', countQuery);
+    const totalCount = countResult?.count || 0;
+
+    // Fetch the franchises for the current page
+    const franchisesQuery = `
         fields 
             name, 
-            games.name, 
-            games.cover.url, 
-            games.total_rating_count;
-        limit 500;
+            games.name,
+            games.cover.url;
+        where ${whereString};
+        sort ${sortBy};
+        limit ${limit};
+        offset ${offset};
     `;
-    const allFranchises = await fetchFromIGDB('franchises', allFranchisesQuery);
+    const franchises = await fetchFromIGDB('franchises', franchisesQuery);
 
-    if (!allFranchises) {
+    if (!franchises) {
         return { franchises: [], totalCount: 0 };
     }
 
-    const popularFranchises = allFranchises
-        .map((f: any) => ({
-            ...f,
-            popularity: f.games?.reduce((sum: number, g: any) => sum + (g.total_rating_count || 0), 0) || 0,
-        }))
-        .filter((f: any) => f.popularity > 0 && f.games && f.games.length > 2)
-        .sort((a: any, b: any) => b.popularity - a.popularity);
-
-    const paginatedFranchises = popularFranchises.slice(offset, offset + limit);
-
-    const finalFranchises = paginatedFranchises.map((franchise: any) => ({
+    const finalFranchises = franchises.map((franchise: any) => ({
         id: franchise.id,
         name: franchise.name,
-        coverUrl: franchise.games && franchise.games.length > 0 && franchise.games[0].cover ? formatCoverUrl(franchise.games[0].cover.url) : '/placeholder.jpg',
+        // Find the first game with a cover to use as the franchise cover
+        coverUrl: franchise.games?.find((g: any) => g.cover?.url)?.cover ? formatCoverUrl(franchise.games.find((g: any) => g.cover.url).cover.url) : '/placeholder.jpg',
         games: franchise.games || [],
     }));
 
-    return { franchises: finalFranchises, totalCount: popularFranchises.length };
+    return { franchises: finalFranchises, totalCount };
 }
 
 
