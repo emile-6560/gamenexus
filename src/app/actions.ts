@@ -27,29 +27,40 @@ export async function findGamesAction(query: string): Promise<{ intro: string; g
         const aiResult = await findGames({ query });
         
         if (!aiResult || aiResult.games.length === 0) {
-            return { intro: "Désolé, je n'ai trouvé aucun jeu correspondant à votre recherche. Essayez d'être plus précis !", games: [] };
+            return { intro: "Désolé, l'IA n'a trouvé aucune recommandation pour votre recherche. Essayez d'être plus précis !", games: [] };
         }
 
         const gamePromises = aiResult.games.map(async (recommendedGame) => {
             try {
+                // Search for the game recommended by the AI
                 const searchResult = await getGames({ search: recommendedGame.name, limit: 1 });
                 if (searchResult.games.length > 0) {
+                    // If found, return its details along with the reason from the AI
                     return { ...searchResult.games[0], reason: recommendedGame.reason };
                 }
-                 return null;
+                 return null; // Return null if not found
             } catch (searchError) {
                 console.error(`Error fetching details for game "${recommendedGame.name}":`, searchError);
                 return null; // Ignore games that fail to fetch
             }
         });
 
+        // Wait for all searches to complete and filter out any null results
         const gamesWithDetails = (await Promise.all(gamePromises)).filter((g): g is Game & { reason: string } => g !== null);
         
+        // If after all searches, no games were found, return the intro text with an empty array
+        // This prevents the generic error and gives a better user experience.
+        if (gamesWithDetails.length === 0) {
+            return { intro: "L'IA a fait des suggestions, mais nous n'avons pas trouvé de correspondances exactes dans notre base de données. Voici ce que l'IA a dit : " + aiResult.recommendationText, games: [] };
+        }
+        
+        // If we have games, return them with the original intro text.
         return { intro: aiResult.recommendationText, games: gamesWithDetails };
 
     } catch (error) {
         console.error('Error in findGamesAction:', error);
-        throw new Error('Failed to find games.');
+        // This will now only catch major errors, like the AI service being down.
+        throw new Error('Une erreur est survenue lors de la communication avec le service IA.');
     }
 }
 
