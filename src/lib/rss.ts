@@ -51,5 +51,4 @@ export async function getNewsFromRss(): Promise<NewsArticle[]> {
     console.error('Error fetching or parsing RSS feed:', error);
     return [];
   }
-}
-]]>
+}]]>
