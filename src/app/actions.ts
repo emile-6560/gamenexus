@@ -3,6 +3,8 @@
 
 import { aggregateGamePrices } from '@/ai/flows/aggregate-game-prices';
 import type { AggregateGamePricesOutput } from '@/ai/flows/aggregate-game-prices';
+import { generateGameConcept } from '@/ai/flows/generate-game-concept';
+import type { GenerateGameConceptOutput } from '@/ai/flows/generate-game-concept';
 import { doc, setDoc, collection, getDocs, orderBy, query } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Game, GameStatus, UserGame } from '@/lib/types';
@@ -18,6 +20,16 @@ export async function findPricesAction(gameName: string): Promise<AggregateGameP
     console.error('Error in findPricesAction:', error);
     throw new Error('Failed to fetch game prices.');
   }
+}
+
+export async function generateGameConceptAction(prompt: string): Promise<GenerateGameConceptOutput> {
+    try {
+        const result = await generateGameConcept({ prompt });
+        return result;
+    } catch (error) {
+        console.error('Error in generateGameConceptAction:', error);
+        throw new Error('Failed to generate game concept.');
+    }
 }
 
 export async function updateUserGameStatus(userId: string, gameId: number, status: GameStatus, gameName: string) {

@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Gamepad, Rss } from 'lucide-react';
+import { Gamepad, Rss, Bot } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/auth-context';
@@ -18,6 +18,7 @@ export function Header() {
     { href: '/franchises', label: 'Franchises' },
     { href: '/studios', label: 'Studios' },
     { href: '/news', label: 'Actualités' },
+    { href: '/game-ai', label: 'GameAI' },
   ];
 
   return (
@@ -34,11 +35,12 @@ export function Header() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  'text-lg font-medium transition-colors hover:text-primary',
+                  'text-lg font-medium transition-colors hover:text-primary flex items-center gap-2',
                   pathname === item.href ? 'text-primary' : 'text-muted-foreground'
                 )}
               >
                 {item.label}
+                {item.href === '/game-ai' && <Bot className="h-5 w-5" />}
               </Link>
             ))}
           </nav>
