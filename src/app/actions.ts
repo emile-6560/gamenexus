@@ -26,23 +26,27 @@ export async function findGamesAction(query: string): Promise<{ intro: string; g
     try {
         const aiResult = await findGames({ query });
         
-        if (!aiResult) {
-            return { intro: "Désolé, l'IA n'a pas pu traiter votre demande. Veuillez réessayer.", games: [] };
-        }
-        
+        // If the AI returns a valid response but no games, we still show the intro text.
         if (!aiResult.games || aiResult.games.length === 0) {
-            return { intro: aiResult.recommendationText || "L'IA n'a trouvé aucune recommandation pour votre recherche. Essayez d'être plus précis !", games: [] };
+            return { 
+                intro: aiResult.recommendationText || "Je n'ai pas trouvé de jeux correspondant à votre recherche. Essayez d'être plus précis !", 
+                games: [] 
+            };
         }
 
         const gamePromises = aiResult.games.map(async (recommendedGame) => {
             try {
+                // Search for the exact name provided by the AI
                 const searchResult = await getGames({ search: recommendedGame.name, limit: 1 });
                 if (searchResult.games.length > 0) {
+                    // Return the first game found, enriched with the AI's reason
                     return { ...searchResult.games[0], reason: recommendedGame.reason };
                 }
-                 return null;
+                console.warn(`No game found in DB for AI recommendation: "${recommendedGame.name}"`);
+                return null;
             } catch (searchError) {
                 console.error(`Error fetching details for game "${recommendedGame.name}":`, searchError);
+                // Return null if there's an error for an individual game, so Promise.all doesn't fail
                 return null;
             }
         });
@@ -50,15 +54,12 @@ export async function findGamesAction(query: string): Promise<{ intro: string; g
         const gamesWithDetails = (await Promise.all(gamePromises)).filter((g): g is Game & { reason: string } => g !== null);
         
         const introText = aiResult.recommendationText || "Voici quelques recommandations basées sur votre recherche :";
-
-        if (gamesWithDetails.length === 0) {
-            return { intro: "L'IA a fait des suggestions, mais nous n'avons pas trouvé de correspondances dans notre base de données. Voici son message : \"" + introText + "\"", games: [] };
-        }
         
         return { intro: introText, games: gamesWithDetails };
 
     } catch (error) {
-        console.error('Error in findGamesAction:', error);
+        console.error('Error in findGamesAction (AI communication or processing):', error);
+        // This catch block now handles errors from the findGames flow or other unexpected issues.
         throw new Error("Une erreur de communication est survenue avec l'assistant IA. Veuillez réessayer.");
     }
 }

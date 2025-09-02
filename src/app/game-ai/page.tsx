@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { findGamesAction } from '@/app/actions';
-import { Loader2, Wand2, Bot, Sparkles, ServerCrash } from 'lucide-react';
+import { Loader2, Wand2, Bot, Sparkles, ServerCrash, SearchX } from 'lucide-react';
 import type { Game } from '@/lib/types';
 import { GameCard, GameCardSkeleton } from '@/components/game-card';
 
@@ -31,8 +31,9 @@ export default function GameAiPage() {
       const response = await findGamesAction(query);
       setResult(response);
     } catch (error: any) {
-      setError(error.message || "Une erreur inattendue est survenue.");
-      toast({ variant: 'destructive', title: 'Erreur', description: error.message });
+      const errorMessage = error.message || "Une erreur inattendue est survenue.";
+      setError(errorMessage);
+      toast({ variant: 'destructive', title: 'Erreur IA', description: errorMessage });
     } finally {
       setLoading(false);
     }
@@ -84,8 +85,10 @@ export default function GameAiPage() {
                 ))}
             </div>
         ) : (
-             <div className="text-center py-10">
+             <div className="text-center py-20 bg-muted/50 rounded-lg">
+                <SearchX className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
                 <p className="text-lg font-semibold">Aucun jeu correspondant trouvé dans notre base de données.</p>
+                <p className="text-muted-foreground mt-1">L'IA a peut-être fait des suggestions, mais nous n'avons pas trouvé de correspondances.</p>
             </div>
         )}
       </div>
@@ -103,7 +106,7 @@ export default function GameAiPage() {
             <p className="text-lg text-muted-foreground mt-2">
             Décrivez le jeu de vos rêves, et laissez notre IA vous trouver des pépites !
             </p>
-            <p className="text-sm text-muted-foreground mt-1">Propulsé par Gemini 2.5 Flash</p>
+            <p className="text-sm text-muted-foreground mt-1">Propulsé par Gemini 2.5 Pro</p>
         </div>
 
         <Card>

@@ -17,13 +17,13 @@ const FindGamesInputSchema = z.object({
 export type FindGamesInput = z.infer<typeof FindGamesInputSchema>;
 
 const FindGamesOutputSchema = z.object({
-    recommendationText: z.string().describe("A friendly and helpful text that introduces the recommended games."),
+    recommendationText: z.string().describe("A friendly and helpful text that introduces the recommended games. This text MUST NOT be empty."),
     games: z.array(
         z.object({
-            name: z.string().describe("The exact title of the recommended game."),
-            reason: z.string().describe("A short, compelling reason why this specific game is recommended based on the user's query.")
+            name: z.string().describe("The exact, full and official title of the recommended game. This is critical for searching in a database."),
+            reason: z.string().describe("A short, compelling reason (1-2 sentences) why this specific game is recommended based on the user's query.")
         })
-    ).describe("A list of 3 to 5 recommended games.")
+    ).describe("A list of 3 to 5 recommended games. This list can be empty if no relevant games are found.")
 });
 export type FindGamesOutput = z.infer<typeof FindGamesOutputSchema>;
 
@@ -36,23 +36,33 @@ const prompt = ai.definePrompt({
   name: 'findGamesPrompt',
   input: {schema: FindGamesInputSchema},
   output: {schema: FindGamesOutputSchema},
-  prompt: `You are a friendly and expert video game assistant named 'GameAI'.
-A user will ask you to find games based on their preferences or questions.
-Your task is to understand their query, provide a helpful and encouraging introductory text, and then suggest a list of 3 to 5 relevant games.
-For each game, you must provide its exact title and a brief, compelling reason for the recommendation.
+  prompt: `You are a friendly and expert video game assistant.
+Your task is to provide a helpful and encouraging introductory text, and then suggest a list of 3 to 5 relevant games based on the user's query.
 
 User Query: {{{query}}}
 
-Based on this query, please act as GameAI and generate a response.
-Make your introduction warm and your reasons for each game insightful and tailored to the user's request.
-Example Output:
-- recommendationText: "Of course! Based on your love for open-world RPGs with deep stories, here are a few gems you might adore:"
-- games: [
-    { name: "The Witcher 3: Wild Hunt", reason: "Features a massive, living world and one of the most celebrated stories in gaming."},
-    { name: "Elden Ring", reason: "Offers unparalleled exploration and challenging combat in a dark fantasy setting."}
-]
+**CRITICAL INSTRUCTIONS:**
+1.  **ALWAYS** provide a 'recommendationText'. It should be friendly and relevant to the user's query. If you find no games, use this text to explain why (e.g., "That's a very specific request! I couldn't find any games that exactly match, but you might be interested in...").
+2.  **ALWAYS** provide a 'games' array. If you cannot find any relevant games, this MUST be an EMPTY array ([]).
+3.  For each game in the array, provide the **EXACT and OFFICIAL** game title in the 'name' field. This is crucial for database lookups.
+4.  For each game, provide a short, compelling 'reason'.
 
-IMPORTANT: You MUST ALWAYS return both a recommendationText and a list of games. If you cannot find ANY relevant games for the query, return a friendly message in recommendationText explaining that you couldn't find anything, and return an EMPTY array for the games field. DO NOT return null or undefined for any field.
+Example for a successful search:
+{
+  "recommendationText": "Based on your love for open-world RPGs, here are a few gems you might adore:",
+  "games": [
+    { "name": "The Witcher 3: Wild Hunt", "reason": "Features a massive, living world and one of the most celebrated stories in gaming." },
+    { "name": "Elden Ring", "reason": "Offers unparalleled exploration and challenging combat in a dark fantasy setting." }
+  ]
+}
+
+Example for an unsuccessful search:
+{
+  "recommendationText": "I couldn't find any games about space-faring pirate cats, but if you like cats and space, maybe you'd enjoy 'Stray' or 'Everspace'!",
+  "games": []
+}
+
+DO NOT DEVIATE FROM THIS FORMAT. Your response MUST be valid JSON that matches the output schema.
 `,
 });
 
@@ -64,6 +74,9 @@ const findGamesFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    return output!;
+    if (!output) {
+      throw new Error("AI failed to generate a valid response.");
+    }
+    return output;
   }
 );
