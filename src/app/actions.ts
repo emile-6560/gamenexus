@@ -1,11 +1,11 @@
 
 'use server';
 
-import { aggregateGamePricesFlow } from '@/ai/flows/aggregate-game-prices';
+import { aggregatePrices } from '@/ai/flows/aggregate-game-prices';
 import type { AggregateGamePricesInput, AggregateGamePricesOutput } from '@/lib/price-aggregator-types';
 import { findGamesFlow } from '@/ai/flows/find-games';
 import type { FindGamesInput, FindGamesOutput } from '@/lib/game-discovery-types';
-import { chatFlow } from '@/ai/flows/chat';
+import { chat } from '@/ai/flows/chat';
 import type { ChatInput, ChatMessage } from '@/lib/chat-types';
 import { doc, setDoc, collection, getDocs, orderBy, query } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -15,7 +15,7 @@ import { getGameDetails, getGames } from '@/lib/igdb-api';
 
 export async function findPricesAction(gameName: string): Promise<AggregateGamePricesOutput> {
   try {
-    const result = await aggregateGamePricesFlow({ gameName });
+    const result = await aggregatePrices({ gameName });
     return result;
 
   } catch (error) {
@@ -126,7 +126,7 @@ export async function getUserGames(userId: string): Promise<(Game & { status: Ga
 
 export async function chatAction(history: ChatMessage[]): Promise<string> {
     try {
-        const result = await chatFlow({ history });
+        const result = await chat({ history });
         return result.text;
     } catch (error) {
         console.error("Error in chatAction:", error);

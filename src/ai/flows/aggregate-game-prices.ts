@@ -6,7 +6,7 @@
  */
 
 import {ai} from '@/ai/genkit';
-import { AggregateGamePricesInputSchema, AggregateGamePricesOutputSchema } from '@/lib/price-aggregator-types';
+import { AggregateGamePricesInput, AggregateGamePricesInputSchema, AggregateGamePricesOutput, AggregateGamePricesOutputSchema } from '@/lib/price-aggregator-types';
 
 const prompt = ai.definePrompt({
   name: 'aggregateGamePricesPrompt',
@@ -22,7 +22,7 @@ Si vous ne trouvez aucun prix, retournez un tableau vide.
 `,
 });
 
-export const aggregateGamePricesFlow = ai.defineFlow(
+const aggregateGamePricesFlow = ai.defineFlow(
   {
     name: 'aggregateGamePricesFlow',
     inputSchema: AggregateGamePricesInputSchema,
@@ -36,3 +36,8 @@ export const aggregateGamePricesFlow = ai.defineFlow(
     return output!;
   }
 );
+
+// Wrapper function to be exported
+export async function aggregatePrices(input: AggregateGamePricesInput): Promise<AggregateGamePricesOutput> {
+    return await aggregateGamePricesFlow(input);
+}
