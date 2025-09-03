@@ -17,7 +17,7 @@ import { auth } from '@/lib/firebase';
 import Link from 'next/link';
 import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
-import { LifeBuoy, LogOut, User as UserIcon, Star } from 'lucide-react';
+import { LifeBuoy, LogOut, User as UserIcon, Star, Heart, List } from 'lucide-react';
 
 export function UserNav() {
   const { user } = useAuth();
@@ -61,6 +61,18 @@ export function UserNav() {
             <DropdownMenuItem>
                 <Star className="mr-2 h-4 w-4" />
                 <span>Mes Expériences</span>
+            </DropdownMenuItem>
+          </Link>
+          <Link href="/favorites">
+            <DropdownMenuItem>
+                <Heart className="mr-2 h-4 w-4" />
+                <span>Mes Favoris</span>
+            </DropdownMenuItem>
+          </Link>
+           <Link href="/lists">
+            <DropdownMenuItem>
+                <List className="mr-2 h-4 w-4" />
+                <span>Mes Listes</span>
             </DropdownMenuItem>
           </Link>
         </DropdownMenuGroup>

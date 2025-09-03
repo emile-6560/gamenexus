@@ -84,3 +84,32 @@ export type NewsArticle = {
   imageUrl: string;
   creator: string;
 };
+
+export type FavoriteItemType = 'game' | 'franchise';
+
+export type FavoriteItem = {
+    id: string; // Composite key like 'game-123' or 'franchise-456'
+    itemId: number;
+    itemType: FavoriteItemType;
+    name: string;
+    coverUrl: string;
+    createdAt: any;
+}
+
+export type UserList = {
+    id: string;
+    name: string;
+    createdAt: any;
+    itemCount: number;
+    coverUrl?: string; // Cover of the first item added
+}
+
+export type ListItem = {
+    id: string; // Composite key 'game-123' etc.
+    itemId: number;
+    itemType: FavoriteItemType;
+    name: string;
+    coverUrl: string;
+    addedAt: any;
+}
+
