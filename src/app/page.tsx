@@ -41,10 +41,6 @@ export default function AiSearchPage() {
         <div className="inline-block bg-primary/10 text-primary p-3 rounded-full mb-4">
             <Wand2 className="h-8 w-8" />
         </div>
-        <h1 className="text-4xl md:text-5xl font-extrabold tracking-tighter">Trouvez votre prochain jeu</h1>
-        <p className="text-lg md:text-xl text-muted-foreground mt-4 max-w-2xl mx-auto">
-          Décrivez simplement le jeu de vos rêves et laissez notre IA faire la magie.
-        </p>
       </div>
 
       <div className="max-w-2xl mx-auto">
