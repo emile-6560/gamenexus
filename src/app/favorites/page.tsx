@@ -3,7 +3,7 @@
 
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { getFavorites } from '@/app/actions';
 import type { FavoriteItem } from '@/lib/types';
 import { GameCard, GameCardSkeleton } from '@/components/game-card';
@@ -16,6 +16,21 @@ export default function FavoritesPage() {
   const [favorites, setFavorites] = useState<FavoriteItem[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const fetchFavorites = useCallback(async () => {
+    if (user) {
+      setLoading(true);
+      try {
+        const userFavorites = await getFavorites(user.uid);
+        setFavorites(userFavorites);
+      } catch (error) {
+        console.error("Failed to fetch favorites:", error);
+        setFavorites([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+  }, [user]);
+
   useEffect(() => {
     if (!authLoading && !user) {
       router.push('/login');
@@ -24,17 +39,11 @@ export default function FavoritesPage() {
 
   useEffect(() => {
     if (user) {
-      const fetchFavorites = async () => {
-        setLoading(true);
-        const userFavorites = await getFavorites(user.uid);
-        setFavorites(userFavorites);
-        setLoading(false);
-      };
       fetchFavorites();
     } else if (!authLoading) {
       setLoading(false);
     }
-  }, [user, authLoading]);
+  }, [user, authLoading, fetchFavorites]);
 
   const games = favorites.filter(f => f.itemType === 'game').map(f => ({ id: f.itemId, name: f.name, coverUrl: f.coverUrl, platforms: [], rating: 0 } as Game));
   const franchises = favorites.filter(f => f.itemType === 'franchise').map(f => ({ id: f.itemId, name: f.name, coverUrl: f.coverUrl, games: [] } as Franchise));
@@ -97,3 +106,5 @@ export default function FavoritesPage() {
     </main>
   );
 }
+
+    

@@ -160,6 +160,10 @@ export async function toggleFavorite(userId: string, item: { id: number; type: F
 
   if (docSnap.exists()) {
     await deleteDoc(docRef);
+    revalidatePath('/favorites');
+    revalidatePath(`/games/${item.id}`);
+    revalidatePath(`/franchises/${item.id}`);
+    return false;
   } else {
     await setDoc(docRef, {
       itemId: item.id,
@@ -168,9 +172,11 @@ export async function toggleFavorite(userId: string, item: { id: number; type: F
       coverUrl: item.coverUrl,
       createdAt: serverTimestamp(),
     });
+    revalidatePath('/favorites');
+    revalidatePath(`/games/${item.id}`);
+    revalidatePath(`/franchises/${item.id}`);
+    return true;
   }
-  revalidatePath('/favorites');
-  return !docSnap.exists();
 }
 
 
@@ -234,7 +240,7 @@ export async function getListDetails(userId: string, listId: string): Promise<{ 
 
     const itemsRef = collection(db, 'users', userId, 'lists', listId, 'items');
     const q = query(itemsRef, orderBy('addedAt', 'desc'));
-    const itemsSnapshot = await getDocs(q);
+    const itemsSnapshot = await getDocs(itemsSnapshot);
 
     const items = itemsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ListItem));
     const listData = listSnap.data();
@@ -300,3 +306,5 @@ export async function removeItemFromList(userId: string, listId: string, itemId:
     revalidatePath(`/lists/${listId}`);
     revalidatePath('/lists');
 }
+
+    

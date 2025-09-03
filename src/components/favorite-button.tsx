@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useTransition } from 'react';
 import { Button } from './ui/button';
 import { Heart, Loader2 } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
@@ -25,6 +25,7 @@ export function FavoriteButton({ item }: FavoriteButtonProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isFavorite, setIsFavorite] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -45,26 +46,27 @@ export function FavoriteButton({ item }: FavoriteButtonProps) {
       return;
     }
     
-    setLoading(true);
-    try {
-      const newStatus = await toggleFavorite(user.uid, item);
-      setIsFavorite(newStatus);
-       toast({
-        title: newStatus ? 'Ajouté aux favoris' : 'Retiré des favoris',
-        description: `"${item.name}" a été ${newStatus ? 'ajouté à' : 'retiré de'} vos favoris.`,
-      });
-    } catch (error) {
-        toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de modifier les favoris.' });
-    } finally {
-        setLoading(false);
-    }
+    startTransition(async () => {
+      try {
+        const newStatus = await toggleFavorite(user.uid, item);
+        setIsFavorite(newStatus);
+        toast({
+          title: newStatus ? 'Ajouté aux favoris' : 'Retiré des favoris',
+          description: `"${item.name}" a été ${newStatus ? 'ajouté à' : 'retiré de'} vos favoris.`,
+        });
+      } catch (error) {
+          toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de modifier les favoris.' });
+      }
+    });
   };
 
   if (!user) return null;
+  const isLoading = isPending || loading;
 
-  if (loading) {
+
+  if (isLoading) {
     return (
-      <Button variant="outline" size="icon" disabled className="bg-background/80">
+      <Button variant="outline" size="icon" disabled className="bg-background/80 hover:bg-background">
         <Loader2 className="h-4 w-4 animate-spin" />
       </Button>
     );
@@ -76,3 +78,5 @@ export function FavoriteButton({ item }: FavoriteButtonProps) {
     </Button>
   );
 }
+
+    
