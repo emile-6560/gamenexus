@@ -43,6 +43,7 @@ export type Game = {
   videos: GameVideo[];
   developers: IdName[];
   publishers: IdName[];
+  reason?: string; // Optional field for AI recommendations
 };
 
 export type Price = {

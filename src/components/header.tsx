@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Gamepad, Rss, Bot } from 'lucide-react';
+import { Gamepad, Rss, Bot, Compass } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/auth-context';
@@ -14,7 +14,7 @@ export function Header() {
   const { user, loading } = useAuth();
 
   const navItems = [
-    { href: '/', label: 'Jeux' },
+    { href: '/games', label: 'Parcourir' },
     { href: '/franchises', label: 'Franchises' },
     { href: '/studios', label: 'Studios' },
     { href: '/news', label: 'Actualités' },
@@ -36,11 +36,13 @@ export function Header() {
                 href={item.href}
                 className={cn(
                   'text-lg font-medium transition-colors hover:text-primary flex items-center gap-2',
-                  pathname === item.href ? 'text-primary' : 'text-muted-foreground'
+                  pathname.startsWith(item.href) && item.href !== '/' ? 'text-primary' : 'text-muted-foreground',
+                  pathname === '/' && item.href === '/' ? 'text-primary' : ''
                 )}
               >
+                 {item.href === '/games' && <Compass className="h-5 w-5" />}
+                 {item.href === '/game-ai' && <Bot className="h-5 w-5" />}
                 {item.label}
-                {item.href === '/game-ai' && <Bot className="h-5 w-5" />}
               </Link>
             ))}
           </nav>
