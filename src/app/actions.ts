@@ -5,7 +5,7 @@ import { aggregatePrices } from '@/ai/flows/aggregate-game-prices';
 import type { AggregateGamePricesInput, AggregateGamePricesOutput } from '@/lib/price-aggregator-types';
 import { findGamesFlow } from '@/ai/flows/find-games';
 import type { FindGamesInput, FindGamesOutput } from '@/lib/game-discovery-types';
-import { chat } from '@/ai/flows/chat';
+import { chatFlow } from '@/ai/flows/chat';
 import type { ChatInput, ChatMessage } from '@/lib/chat-types';
 import { doc, setDoc, collection, getDocs, orderBy, query } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -126,7 +126,7 @@ export async function getUserGames(userId: string): Promise<(Game & { status: Ga
 
 export async function chatAction(history: ChatMessage[]): Promise<string> {
     try {
-        const result = await chat({ history });
+        const result = await chatFlow({ history });
         return result.text;
     } catch (error) {
         console.error("Error in chatAction:", error);
