@@ -5,7 +5,7 @@ import { Header } from '@/components/header';
 import { AuthProvider } from '@/context/auth-context';
 
 export const metadata: Metadata = {
-  title: 'GameFinder',
+  title: 'GameNexus',
   description: 'Recherchez et découvrez vos jeux préférés.',
 };
 
@@ -30,7 +30,7 @@ export default function RootLayout({
           <Toaster />
           <footer className="py-4 px-4 sm:px-6 md:px-8 border-t mt-auto">
               <div className="container mx-auto text-center text-sm text-muted-foreground">
-                  Copyright©️2025 GameFinder est un service JV Impact, Tous droits réservés. Merci à IGDB pour l'API :)
+                  Copyright©️2025 GameNexus est un service JV Impact, Tous droits réservés. Merci à IGDB pour l'API :)
               </div>
           </footer>
         </AuthProvider>
