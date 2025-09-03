@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect, useCallback, useTransition } from 'react';
@@ -198,4 +197,3 @@ export default function FranchisesPage() {
     </div>
   );
 }
-
