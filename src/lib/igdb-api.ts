@@ -21,13 +21,15 @@ async function fetchFromIGDB(endpoint: string, query: string) {
   
   try {
     const response = await fetch(`${IGDB_API_URL}/${endpoint}`, {
-      method: 'POST',
-      headers: {
-        'Client-ID': CLIENT_ID,
-        'Authorization': `Bearer ${ACCESS_TOKEN}`,
-        'Accept': 'application/json',
-      },
-      body: query,
+  method: 'POST',
+  headers: {
+    'Client-ID': CLIENT_ID,
+    'Authorization': `Bearer ${ACCESS_TOKEN}`,
+    'Accept': 'application/json',
+  },
+  body: query,
+});
+
       next: { revalidate: 3600 } // Revalidate every hour
     });
 
