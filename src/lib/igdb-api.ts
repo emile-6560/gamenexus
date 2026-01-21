@@ -39,13 +39,13 @@ console.log('Query snippet:', query.slice(0, 50));
 
   if (!response.ok) {
     console.error(`IGDB API error: ${response.status} ${response.statusText}`, await response.json());
-    throw new Error('Failed to fetch from IGDB API');
+    return null;
   }
 
   return response.json();
 } catch (error) {
   console.error('Error fetching from IGDB:', error);
-  throw error;
+  return null;
 }
 
 }
