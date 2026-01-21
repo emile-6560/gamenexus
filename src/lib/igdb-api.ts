@@ -20,6 +20,11 @@ async function fetchFromIGDB(endpoint: string, query: string) {
   }
   
  try {
+   console.log('CLIENT_ID:', CLIENT_ID ? 'OK' : 'MISSING');
+console.log('ACCESS_TOKEN:', ACCESS_TOKEN ? 'OK' : 'MISSING');
+console.log('Endpoint:', endpoint);
+console.log('Query snippet:', query.slice(0, 50));
+   
   const response = await fetch(`${IGDB_API_URL}/${endpoint}`, {
     method: 'POST',
     headers: {
