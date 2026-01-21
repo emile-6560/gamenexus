@@ -19,29 +19,30 @@ async function fetchFromIGDB(endpoint: string, query: string) {
     return null;
   }
   
-  try {
-    const response = await fetch(`${IGDB_API_URL}/${endpoint}`, {
-  method: 'POST',
-  headers: {
-    'Client-ID': CLIENT_ID,
-    'Authorization': `Bearer ${ACCESS_TOKEN}`,
-    'Accept': 'application/json',
-  },
-  body: query,
-});
+ try {
+  const response = await fetch(`${IGDB_API_URL}/${endpoint}`, {
+    method: 'POST',
+    headers: {
+      'Client-ID': CLIENT_ID,
+      'Authorization': `Bearer ${ACCESS_TOKEN}`,
+      'Accept': 'application/json',
+      'Content-Type': 'text/plain'
+    },
+    body: query
+    // ⚠️ Ne mets pas `next: { revalidate: 3600 }` ici, ça plante Netlify
+  });
 
-      next: { revalidate: 3600 } // Revalidate every hour
-    });
-
-    if (!response.ok) {
-      console.error(`IGDB API error: ${response.status} ${response.statusText}`, await response.json());
-      throw new Error('Failed to fetch from IGDB API');
-    }
-    return response.json();
-  } catch (error) {
-    console.error('Error fetching from IGDB:', error);
-    throw error;
+  if (!response.ok) {
+    console.error(`IGDB API error: ${response.status} ${response.statusText}`, await response.json());
+    throw new Error('Failed to fetch from IGDB API');
   }
+
+  return response.json();
+} catch (error) {
+  console.error('Error fetching from IGDB:', error);
+  throw error;
+}
+
 }
 
 function formatCoverUrl(url?: string) {
