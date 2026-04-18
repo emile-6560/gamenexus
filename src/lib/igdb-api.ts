@@ -7,11 +7,11 @@ const CLIENT_ID = process.env.IGDB_CLIENT_ID;
 const ACCESS_TOKEN = process.env.IGDB_ACCESS_TOKEN;
 
 /**
- * Moteur de requête centralisé
+ * Moteur de requête centralisé avec gestion d'erreurs 401 et 404
  */
 async function fetchFromIGDB(endpoint: string, query: string) {
   if (!CLIENT_ID || !ACCESS_TOKEN) {
-    console.error('Erreur : Variables d\'environnement IGDB manquantes sur Vercel.');
+    console.error('ERREUR : Clés API manquantes dans les variables d\'environnement Vercel.');
     return null;
   }
 
@@ -25,12 +25,12 @@ async function fetchFromIGDB(endpoint: string, query: string) {
         'Content-Type': 'text/plain'
       },
       body: query,
-      next: { revalidate: 3600 } // Cache d'une heure pour la rapidité
+      next: { revalidate: 3600 } // Cache d'une heure pour la performance
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`IGDB API Error [${response.status}]:`, errorText);
+      const errorData = await response.text();
+      console.error(`IGDB API Error [${response.status}] sur ${endpoint}:`, errorData);
       return null;
     }
 
@@ -45,7 +45,7 @@ async function fetchFromIGDB(endpoint: string, query: string) {
 const formatImg = (url?: string, size: string = 't_cover_big_2x') => 
   url ? `https:${url.replace('t_thumb', size)}` : '/placeholder.jpg';
 
-// --- Mapping des données ---
+// --- Mapping universel des données ---
 function mapGame(game: any): Game {
   return {
     id: game.id,
@@ -60,23 +60,54 @@ function mapGame(game: any): Game {
     themes: game.themes || [],
     franchises: game.franchises || [],
     gameModes: game.game_modes || [],
-    videos: game.videos || [],
-    developers: (game.involved_companies || []).filter((c: any) => c.developer).map((c: any) => c.company).filter(Boolean),
-    publishers: (game.involved_companies || []).filter((c: any) => c.publisher).map((c: any) => c.company).filter(Boolean),
+    videos: (game.videos || []).map((v: any) => ({ id: v.id, videoId: v.video_id })),
+    developers: (game.involved_companies || []).filter((c: any) => c.developer).map((c: any) => c.company?.name).filter(Boolean),
+    publishers: (game.involved_companies || []).filter((c: any) => c.publisher).map((c: any) => c.company?.name).filter(Boolean),
   };
 }
 
-// --- 1. SECTION JEUX ---
-export async function getGames({ search = '', platform = '', page = 1, limit = 20 } = {}) {
-  let where = 'total_rating > 0 & total_rating_count > 0 & version_parent = null';
-  if (search) where += ` & name ~ *"${search}"*`;
-  if (platform) where += ` & platforms.name = "${platform}"`;
+// --- 1. SECTION JEUX (TRI ET FILTRES FIXÉS) ---
+export async function getGames({ 
+  search = '', 
+  platform = '', 
+  page = 1, 
+  limit = 20, 
+  sortBy = 'total_rating_count:desc' // Format IGDB : champ:ordre
+} = {}) {
+  
+  let whereClauses = [
+    'version_parent = null',
+    'parent_game = null',
+    'first_release_date != null',
+    'cover.url != null'
+  ];
 
+  // Si pas de recherche, on filtre les jeux sans note pour avoir de la qualité
+  if (!search) {
+    whereClauses.push('total_rating > 0');
+  } else {
+    whereClauses.push(`name ~ *"${search}"*`);
+  }
+
+  // Filtre Plateforme (Correction : on vérifie que ce n'est pas "all")
+  if (platform && platform !== 'all') {
+    whereClauses.push(`platforms.name = "${platform}"`);
+  }
+
+  const whereString = whereClauses.join(' & ');
   const offset = (page - 1) * limit;
-  const countRes = await fetchFromIGDB('games/count', `where ${where};`);
+
+  // Construction du tri (On nettoie le sortBy pour être sûr du format)
+  const cleanSort = sortBy.replace(' ', ':'); 
+
+  // Requête vers IGDB
+  const countRes = await fetchFromIGDB('games/count', `where ${whereString};`);
   const gamesData = await fetchFromIGDB('games', `
-    fields name, cover.url, platforms.name, total_rating, first_release_date;
-    where ${where}; sort total_rating_count desc; limit ${limit}; offset ${offset};
+    fields name, summary, cover.url, platforms.name, total_rating, total_rating_count, first_release_date;
+    where ${whereString};
+    ${search ? '' : `sort ${cleanSort};`}
+    limit ${limit};
+    offset ${offset};
   `);
 
   return { 
@@ -110,7 +141,7 @@ export async function getFranchises({ page = 1, limit = 20, search = '' } = {}) 
   return { franchises: formatted, totalCount: countRes?.count || 0 };
 }
 
-// --- 3. SECTION STUDIOS (Le correctif pour ton erreur) ---
+// --- 3. SECTION STUDIOS ---
 export async function getStudios({ page = 1, limit = 20, search = '' } = {}) {
   const offset = (page - 1) * limit;
   let where = 'developed != null & logo != null';
@@ -122,18 +153,23 @@ export async function getStudios({ page = 1, limit = 20, search = '' } = {}) {
     where ${where}; sort name asc; limit ${limit}; offset ${offset};
   `);
 
-  // La protection cruciale est ici : (studiosData || [])
   const formatted = (studiosData || []).map((s: any) => ({
     id: s.id,
     name: s.name,
     logoUrl: formatImg(s.logo?.url, 't_logo_med'),
-    developed: s.developed || [],
+    developed: (s.developed || []).slice(0, 5), // On limite à 5 jeux pour l'affichage
   }));
 
   return { studios: formatted, totalCount: countRes?.count || 0 };
 }
 
+// --- 4. DÉTAILS D'UN JEU ---
 export async function getGameDetails(id: number) {
-  const data = await fetchFromIGDB('games', `fields name, summary, cover.url, platforms.name, total_rating, screenshots.url, first_release_date; where id = ${id};`);
+  const data = await fetchFromIGDB('games', `
+    fields name, summary, cover.url, platforms.name, total_rating, screenshots.url, 
+    first_release_date, genres.name, themes.name, involved_companies.company.name, 
+    involved_companies.developer, involved_companies.publisher, videos.video_id; 
+    where id = ${id};
+  `);
   return data && data.length > 0 ? mapGame(data[0]) : null;
 }
