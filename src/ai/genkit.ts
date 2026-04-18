@@ -1,12 +1,14 @@
-import {genkit} from 'genkit';
-import {googleAI} from '@genkit-ai/googleai';
+import { genkit } from 'genkit';
+import { googleAI, gemini15Flash, gemini15Pro } from '@genkit-ai/googleai';
 
-// Instance principale avec la clé API par défaut (pour les modèles Pro)
+// Instance Pro
 export const ai = genkit({
-  plugins: [googleAI({apiKey: process.env.GEMINI_API_KEY})],
+  plugins: [googleAI({ apiKey: process.env.GEMINI_API_KEY })],
+  model: gemini15Pro, // Modèle par défaut pour 'ai'
 });
 
-// Instance dédiée pour le modèle Flash avec sa propre clé API
+// Instance Flash (Celle que tu utilises pour les prix)
 export const aiFlash = genkit({
-  plugins: [googleAI({apiKey: process.env.GEMINI_API_KEY_FLASH})],
+  plugins: [googleAI({ apiKey: process.env.GEMINI_API_KEY_FLASH })],
+  model: gemini15Flash, // <--- AJOUTE ÇA : Fixe le modèle par défaut pour cette instance
 });
